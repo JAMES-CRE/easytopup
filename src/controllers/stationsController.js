@@ -1,4 +1,4 @@
- const pool = require('../config/db');
+const pool = require('../config/db');
 
 //GET ALL STATIONS
 const getAllStations = async (req, res) => {
@@ -278,8 +278,8 @@ const approveStation = async (req, res) => {
 };
 
 
-// ── UPDATE POWER OUTPUT (operator) ──
-// PUT /api/stations/:id/power-output
+/// ── UPDATE POWER OUTPUT (operator) ──
+// PUT /api/stations/:id/power
 const updatePowerOutput = async (req, res) => {
   try {
     const { id } = req.params;
@@ -341,8 +341,8 @@ module.exports = {
   updateStatus,
   updatePowerOutput,
   approveStation,
-  
+
 };
 
-  
+
 

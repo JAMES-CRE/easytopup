@@ -7,9 +7,6 @@ const {
   approveStation,
 } = require('../controllers/stationsController');
 
-
-
-
 const { protect, operatorOnly, adminOnly } = require('../middleware/authMiddleware');
 
 router.get('/', getAllStations);
