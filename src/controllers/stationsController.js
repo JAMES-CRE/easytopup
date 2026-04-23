@@ -277,11 +277,72 @@ const approveStation = async (req, res) => {
   }
 };
 
+
+// ── UPDATE POWER OUTPUT (operator) ──
+// PUT /api/stations/:id/power-output
+const updatePowerOutput = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { power_output } = req.body;
+
+    if (!power_output) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide power_output',
+      });
+    }
+
+    const station = await pool.query(
+      'SELECT * FROM stations WHERE id = $1',
+      [id]
+    );
+
+    if (station.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Station not found',
+      });
+    }
+
+    if (
+      req.user.role !== 'admin' &&
+      station.rows[0].operator_id !== req.user.id
+    ) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to update this station',
+      });
+    }
+
+    await pool.query(
+      'UPDATE stations SET power_output = $1 WHERE id = $2',
+      [power_output, id]
+    );
+
+    res.status(200).json({
+      success: true,
+      message: 'Power output updated successfully',
+    });
+
+  } catch (error) {
+    console.error('Update power output error:', error.message);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update power output',
+    });
+  }
+};
+
 module.exports = {
   getAllStations,
   getStationById,
   addStation,
   updatePrice,
   updateStatus,
+  updatePowerOutput,
   approveStation,
+  
 };
+
+  
+
