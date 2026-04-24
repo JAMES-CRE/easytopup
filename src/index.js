@@ -1,24 +1,18 @@
- require('dotenv').config();
+require('dotenv').config();
 
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+const path = require('path');
 
-// Import database
-require('./config/db');
-
-// Import routes
-const stationsRoutes = require('./routes/stations');
-const authRoutes = require('./routes/auth');
-const reportsRoutes = require('./routes/reports');
-const adminRoutes = require('./routes/admin');
-app.use('/api/admin', adminRoutes);
-
-
+// ── CREATE APP FIRST ──
 const app = express();
 
-//SECURITY MIDDLEWARE 
+// ── IMPORT DATABASE ──
+require('./config/db');
+
+// ── SECURITY MIDDLEWARE ──
 app.use(helmet());
 
 // cors allows Flutter app to make requests
@@ -38,17 +32,22 @@ app.use(limiter);
 // Parse incoming JSON request bodies
 app.use(express.json());
 
-const path = require('path');
-
 // Serve admin dashboard as static file
 app.use(express.static(path.join(__dirname, '../public')));
 
-//ROUTES
+// ── IMPORT ROUTES (after app is created) ──
+const stationsRoutes = require('./routes/stations');
+const authRoutes = require('./routes/auth');
+const reportsRoutes = require('./routes/reports');
+const adminRoutes = require('./routes/admin');
+
+// ── ROUTES ──
 app.use('/api/stations', stationsRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/reports', reportsRoutes);
+app.use('/api/admin', adminRoutes);
 
-//HEALTH CHECK
+// ── HEALTH CHECK ──
 app.get('/', (req, res) => {
   res.json({
     success: true,
@@ -56,7 +55,7 @@ app.get('/', (req, res) => {
   });
 });
 
-//404 HANDLER 
+// ── 404 HANDLER ──
 app.use((req, res) => {
   res.status(404).json({
     success: false,
@@ -64,7 +63,7 @@ app.use((req, res) => {
   });
 });
 
-//GLOBAL ERROR HANDLER
+// ── GLOBAL ERROR HANDLER ──
 app.use((err, req, res, next) => {
   console.error('Unhandled error:', err.message);
   res.status(500).json({
@@ -73,8 +72,9 @@ app.use((err, req, res, next) => {
   });
 });
 
-//START SERVER
+// ── START SERVER ──
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
+
