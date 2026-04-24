@@ -12,7 +12,7 @@ const generateToken = (user) => {
 };
 
 //REGISTER 
-const register = async (req, res) => {
+/*const register = async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
@@ -69,7 +69,68 @@ const register = async (req, res) => {
       message: 'Registration did not work. Please try again.',
     });
   }
+};*/
+
+const register = async (req, res) => {
+  try {
+    const { name, email, password, role } = req.body;
+
+    if (!name || !email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide name, email and password',
+      });
+    }
+
+    const existing = await pool.query(
+      'SELECT id FROM users WHERE email = $1',
+      [email]
+    );
+
+    if (existing.rows.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email already registered',
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // ── Accept role from request ──
+    // Only allow 'user' or 'operator' — never allow 'admin' from signup
+    const userRole = role === 'operator' ? 'operator' : 'user';
+
+    const result = await pool.query(
+      `INSERT INTO users (name, email, password, role)
+       VALUES ($1, $2, $3, $4)
+       RETURNING id, name, email, role`,
+      [name, email, hashedPassword, userRole]
+    );
+
+    const user = result.rows[0];
+    const token = generateToken(user);
+
+    res.status(201).json({
+      success: true,
+      message: 'Account created successfully',
+      data: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        token,
+      },
+    });
+
+  } catch (error) {
+    console.error('Register error:', error.message);
+    res.status(500).json({
+      success: false,
+      message: 'Registration failed. Please try again.',
+    });
+  }
 };
+
 
      //LOGIN 
 const login = async (req, res) => {
