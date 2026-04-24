@@ -73,7 +73,7 @@ const generateToken = (user) => {
 
 const register = async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
+    const { name, email, password, role,business_name } = req.body;
 
     if (!name || !email || !password) {
       return res.status(400).json({
@@ -101,10 +101,10 @@ const register = async (req, res) => {
     const userRole = role === 'operator' ? 'operator' : 'user';
 
     const result = await pool.query(
-      `INSERT INTO users (name, email, password, role)
-       VALUES ($1, $2, $3, $4)
-       RETURNING id, name, email, role`,
-      [name, email, hashedPassword, userRole]
+      `INSERT INTO users (name, email, password, role, business_name)
+       VALUES ($1, $2, $3, $4, $5)
+       RETURNING id, name, email, role, business_name`,
+      [name, email, hashedPassword, userRole, business_name || null]
     );
 
     const user = result.rows[0];
@@ -118,6 +118,7 @@ const register = async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
+        business_name: user.business_name,
         token,
       },
     });
