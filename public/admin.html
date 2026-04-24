@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Easy Top Up — Admin Dashboard</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #F3F4F6;
+      color: #1F2937;
+    }
+
+    /* ── HEADER ── */
+    .header {
+      background: #2E7D32;
+      color: white;
+      padding: 16px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+
+    .header h1 {
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .header span {
+      font-size: 13px;
+      opacity: 0.8;
+    }
+
+    #logout-btn {
+      background: rgba(255,255,255,0.2);
+      border: 1px solid rgba(255,255,255,0.4);
+      color: white;
+      padding: 6px 16px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    #logout-btn:hover { background: rgba(255,255,255,0.3); }
+
+    /* ── LOGIN SCREEN ── */
+    #login-screen {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background: linear-gradient(180deg, #E8F5E9, #C8E6C9);
+    }
+
+    .login-card {
+      background: white;
+      border-radius: 20px;
+      padding: 40px;
+      width: 100%;
+      max-width: 380px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+      text-align: center;
+    }
+
+    .login-card .logo { font-size: 48px; margin-bottom: 12px; }
+
+    .login-card h2 {
+      color: #2E7D32;
+      font-size: 24px;
+      margin-bottom: 4px;
+    }
+
+    .login-card p {
+      color: #6B7280;
+      font-size: 14px;
+      margin-bottom: 28px;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1.5px solid #E5E7EB;
+      border-radius: 12px;
+      font-size: 14px;
+      margin-bottom: 12px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input:focus { border-color: #2E7D32; }
+
+    .btn {
+      width: 100%;
+      padding: 13px;
+      border: none;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+
+    .btn:hover { opacity: 0.9; }
+    .btn-green { background: #2E7D32; color: white; }
+    .btn-red { background: #DC2626; color: white; }
+    .btn-orange { background: #EA580C; color: white; }
+    .btn-grey {
+      background: #F3F4F6;
+      color: #6B7280;
+      border: 1px solid #E5E7EB;
+    }
+
+    .error-msg {
+      color: #DC2626;
+      font-size: 13px;
+      margin-top: 8px;
+    }
+
+    /* ── MAIN DASHBOARD ── */
+    #dashboard { display: none; }
+
+    .tabs {
+      background: white;
+      display: flex;
+      gap: 0;
+      border-bottom: 2px solid #E5E7EB;
+      padding: 0 32px;
+    }
+
+    .tab {
+      padding: 14px 24px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      color: #6B7280;
+      border-bottom: 3px solid transparent;
+      margin-bottom: -2px;
+      transition: all 0.2s;
+    }
+
+    .tab.active {
+      color: #2E7D32;
+      border-bottom-color: #2E7D32;
+    }
+
+    .tab-content { display: none; padding: 24px 32px; }
+    .tab-content.active { display: block; }
+
+    /* ── STATS BAR ── */
+    .stats {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+
+    .stat-card {
+      background: white;
+      border-radius: 12px;
+      padding: 16px 24px;
+      flex: 1;
+      min-width: 140px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+      border-left: 4px solid #2E7D32;
+    }
+
+    .stat-card .number {
+      font-size: 28px;
+      font-weight: 700;
+      color: #2E7D32;
+    }
+
+    .stat-card .label {
+      font-size: 12px;
+      color: #6B7280;
+      margin-top: 4px;
+    }
+
+    .stat-card.orange { border-left-color: #EA580C; }
+    .stat-card.orange .number { color: #EA580C; }
+    .stat-card.red { border-left-color: #DC2626; }
+    .stat-card.red .number { color: #DC2626; }
+
+    /* ── SECTION TITLE ── */
+    .section-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #1F2937;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .badge {
+      background: #DC2626;
+      color: white;
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 20px;
+    }
+
+    /* ── CARDS ── */
+    .card {
+      background: white;
+      border-radius: 14px;
+      padding: 20px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .card-info { flex: 1; min-width: 200px; }
+
+    .card-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #1F2937;
+      margin-bottom: 4px;
+    }
+
+    .card-sub {
+      font-size: 13px;
+      color: #6B7280;
+      margin-bottom: 4px;
+    }
+
+    .type-badge {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      margin-top: 6px;
+    }
+
+    .badge-petrol { background: #FEF3C7; color: #B45309; }
+    .badge-lpg { background: #DBEAFE; color: #1D4ED8; }
+    .badge-ev { background: #D1FAE5; color: #065F46; }
+    .badge-pending { background: #FEF3C7; color: #B45309; }
+    .badge-approved { background: #D1FAE5; color: #065F46; }
+
+    .card-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .action-btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+
+    .action-btn:hover { opacity: 0.85; }
+    .btn-approve { background: #2E7D32; color: white; }
+    .btn-reject { background: #DC2626; color: white; }
+    .btn-delete { background: #F3F4F6; color: #DC2626; border: 1px solid #DC2626; }
+
+    /* ── EMPTY STATE ── */
+    .empty {
+      text-align: center;
+      padding: 60px 20px;
+      color: #9CA3AF;
+    }
+
+    .empty .icon { font-size: 48px; margin-bottom: 12px; }
+    .empty p { font-size: 15px; }
+
+    /* ── LOADING ── */
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: #6B7280;
+    }
+
+    /* ── TOAST ── */
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #1F2937;
+      color: white;
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-size: 14px;
+      opacity: 0;
+      transition: opacity 0.3s;
+      z-index: 1000;
+    }
+
+    #toast.show { opacity: 1; }
+    #toast.success { background: #2E7D32; }
+    #toast.error { background: #DC2626; }
+
+    /* ── CONFIRM DIALOG ── */
+    #confirm-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 999;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #confirm-overlay.show { display: flex; }
+
+    .confirm-box {
+      background: white;
+      border-radius: 16px;
+      padding: 28px;
+      max-width: 360px;
+      width: 90%;
+      text-align: center;
+    }
+
+    .confirm-box h3 {
+      font-size: 18px;
+      margin-bottom: 8px;
+    }
+
+    .confirm-box p {
+      color: #6B7280;
+      font-size: 14px;
+      margin-bottom: 20px;
+    }
+
+    .confirm-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .confirm-actions button {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    @media (max-width: 600px) {
+      .tabs { padding: 0 16px; }
+      .tab { padding: 12px 14px; font-size: 12px; }
+      .tab-content { padding: 16px; }
+      .stats { gap: 10px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── LOGIN SCREEN ── -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="logo">⛽</div>
+    <h2>Easy Top Up</h2>
+    <p>Admin Dashboard — Sign in to continue</p>
+    <input type="email" id="login-email" placeholder="Admin email" />
+    <input type="password" id="login-password" placeholder="Password" />
+    <button class="btn btn-green" onclick="adminLogin()">Sign In</button>
+    <p class="error-msg" id="login-error"></p>
+  </div>
+</div>
+
+<!-- ── DASHBOARD ── -->
+<div id="dashboard">
+
+  <!-- Header -->
+  <div class="header">
+    <div>
+      <h1>⛽ Easy Top Up — Admin</h1>
+      <span id="admin-name"></span>
+    </div>
+    <button id="logout-btn" onclick="logout()">Logout</button>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('pending')">
+      🕐 Pending Stations
+    </div>
+    <div class="tab" onclick="switchTab('stations')">
+      📍 All Stations
+    </div>
+    <div class="tab" onclick="switchTab('reports')">
+      🚩 Reports
+    </div>
+  </div>
+
+  <!-- ── PENDING STATIONS TAB ── -->
+  <div class="tab-content active" id="tab-pending">
+    <div class="stats">
+      <div class="stat-card orange">
+        <div class="number" id="pending-count">0</div>
+        <div class="label">Pending Approval</div>
+      </div>
+    </div>
+    <div class="section-title">
+      🕐 Stations Awaiting Approval
+      <span class="badge" id="pending-badge">0</span>
+    </div>
+    <div id="pending-list">
+      <div class="loading">Loading...</div>
+    </div>
+  </div>
+
+  <!-- ── ALL STATIONS TAB ── -->
+  <div class="tab-content" id="tab-stations">
+    <div class="stats">
+      <div class="stat-card">
+        <div class="number" id="total-stations">0</div>
+        <div class="label">Total Stations</div>
+      </div>
+      <div class="stat-card">
+        <div class="number" id="petrol-count">0</div>
+        <div class="label">Petrol/Diesel</div>
+      </div>
+      <div class="stat-card">
+        <div class="number" id="lpg-count">0</div>
+        <div class="label">LPG</div>
+      </div>
+      <div class="stat-card">
+        <div class="number" id="ev-count">0</div>
+        <div class="label">EV</div>
+      </div>
+    </div>
+    <div class="section-title">📍 All Stations</div>
+    <div id="stations-list">
+      <div class="loading">Loading...</div>
+    </div>
+  </div>
+
+  <!-- ── REPORTS TAB ── -->
+  <div class="tab-content" id="tab-reports">
+    <div class="stats">
+      <div class="stat-card red">
+        <div class="number" id="reports-count">0</div>
+        <div class="label">Total Reports</div>
+      </div>
+    </div>
+    <div class="section-title">🚩 All Submitted Reports</div>
+    <div id="reports-list">
+      <div class="loading">Loading...</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ── TOAST ── -->
+<div id="toast"></div>
+
+<!-- ── CONFIRM DIALOG ── -->
+<div id="confirm-overlay">
+  <div class="confirm-box">
+    <h3 id="confirm-title">Are you sure?</h3>
+    <p id="confirm-message"></p>
+    <div class="confirm-actions">
+      <button style="background:#F3F4F6;color:#374151"
+              onclick="closeConfirm()">Cancel</button>
+      <button id="confirm-ok-btn"
+              style="background:#DC2626;color:white"
+              onclick="confirmAction()">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ── CONFIG ──
+  const API = 'https://easytopup-finalyearproject.up.railway.app/api';
+  // ↑ Replace with your actual Railway URL
+
+  let TOKEN = localStorage.getItem('admin_token') || '';
+  let pendingAction = null;
+
+  // ── ON PAGE LOAD ──
+  window.onload = () => {
+    if (TOKEN) {
+      showDashboard();
+      loadAll();
+    }
+  };
+
+  // ── LOGIN ──
+  async function adminLogin() {
+    const email = document.getElementById('login-email').value;
+    const password = document.getElementById('login-password').value;
+    const errEl = document.getElementById('login-error');
+    errEl.textContent = '';
+
+    try {
+      const res = await fetch(`${API}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        errEl.textContent = data.message || 'Login failed';
+        return;
+      }
+
+      // Check if user is admin
+      if (data.data.role !== 'admin') {
+        errEl.textContent = 'Access denied. Admin accounts only.';
+        return;
+      }
+
+      TOKEN = data.data.token;
+      localStorage.setItem('admin_token', TOKEN);
+      document.getElementById('admin-name').textContent =
+        `Logged in as ${data.data.name}`;
+
+      showDashboard();
+      loadAll();
+
+    } catch (e) {
+      errEl.textContent = 'Network error. Try again.';
+    }
+  }
+
+  // ── SHOW DASHBOARD ──
+  function showDashboard() {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+  }
+
+  // ── LOGOUT ──
+  function logout() {
+    TOKEN = '';
+    localStorage.removeItem('admin_token');
+    document.getElementById('login-screen').style.display = 'flex';
+    document.getElementById('dashboard').style.display = 'none';
+  }
+
+  // ── LOAD ALL DATA ──
+  function loadAll() {
+    loadPending();
+    loadStations();
+    loadReports();
+  }
+
+  // ── SWITCH TAB ──
+  function switchTab(tab) {
+    document.querySelectorAll('.tab').forEach(t =>
+      t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(t =>
+      t.classList.remove('active'));
+
+    document.querySelectorAll('.tab')[
+      ['pending', 'stations', 'reports'].indexOf(tab)
+    ].classList.add('active');
+
+    document.getElementById(`tab-${tab}`).classList.add('active');
+  }
+
+  // ── HEADERS ──
+  const headers = () => ({
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${TOKEN}`,
+  });
+
+  // ── LOAD PENDING STATIONS ──
+  async function loadPending() {
+    try {
+      const res = await fetch(`${API}/admin/stations/pending`,
+        { headers: headers() });
+      const data = await res.json();
+      const stations = data.data || [];
+
+      document.getElementById('pending-count').textContent =
+        stations.length;
+      document.getElementById('pending-badge').textContent =
+        stations.length;
+
+      const list = document.getElementById('pending-list');
+
+      if (stations.length === 0) {
+        list.innerHTML = `
+          <div class="empty">
+            <div class="icon">✅</div>
+            <p>No pending stations — all caught up!</p>
+          </div>`;
+        return;
+      }
+
+      list.innerHTML = stations.map(s => `
+        <div class="card">
+          <div class="card-info">
+            <div class="card-title">${s.name}</div>
+            <div class="card-sub">
+              📍 ${s.lat.toFixed(4)}, ${s.lng.toFixed(4)}
+            </div>
+            <div class="card-sub">
+              💰 ${s.price || 'N/A'} &nbsp;|&nbsp;
+              📞 ${s.phone || 'N/A'}
+            </div>
+            <div class="card-sub">
+              👤 Operator: ${s.operator_name || 'Unknown'}
+              (${s.operator_email || ''})
+            </div>
+            <span class="type-badge ${typeBadgeClass(s.type)}">
+              ${s.type}
+            </span>
+            ${s.connector
+              ? `<span class="type-badge badge-ev" style="margin-left:6px">
+                  ${s.connector}
+                 </span>`
+              : ''}
+            ${s.power_output
+              ? `<span class="type-badge badge-ev" style="margin-left:6px">
+                  ${s.power_output}
+                 </span>`
+              : ''}
+          </div>
+          <div class="card-actions">
+            <button class="action-btn btn-approve"
+              onclick="approveStation('${s.id}', '${s.name}')">
+              ✅ Approve
+            </button>
+            <button class="action-btn btn-reject"
+              onclick="rejectStation('${s.id}', '${s.name}')">
+              ❌ Reject
+            </button>
+          </div>
+        </div>
+      `).join('');
+
+    } catch (e) {
+      document.getElementById('pending-list').innerHTML =
+        '<div class="empty"><p>Failed to load pending stations</p></div>';
+    }
+  }
+
+  // ── LOAD ALL STATIONS ──
+  async function loadStations() {
+    try {
+      const res = await fetch(`${API}/admin/stations`,
+        { headers: headers() });
+      const data = await res.json();
+      const stations = data.data || [];
+
+      document.getElementById('total-stations').textContent =
+        stations.length;
+      document.getElementById('petrol-count').textContent =
+        stations.filter(s => s.type === 'Petrol/Diesel').length;
+      document.getElementById('lpg-count').textContent =
+        stations.filter(s => s.type === 'LPG').length;
+      document.getElementById('ev-count').textContent =
+        stations.filter(s => s.type === 'EV').length;
+
+      const list = document.getElementById('stations-list');
+
+      if (stations.length === 0) {
+        list.innerHTML = `
+          <div class="empty">
+            <div class="icon">📍</div>
+            <p>No stations yet</p>
+          </div>`;
+        return;
+      }
+
+      list.innerHTML = stations.map(s => `
+        <div class="card">
+          <div class="card-info">
+            <div class="card-title">${s.name}</div>
+            <div class="card-sub">
+              💰 ${s.price || 'N/A'} &nbsp;|&nbsp;
+              📞 ${s.phone || 'N/A'}
+            </div>
+            <div class="card-sub">
+              Status: <strong>${s.status}</strong> &nbsp;|&nbsp;
+              Verified: <strong>${s.verified ? '✅' : '❌'}</strong>
+            </div>
+            ${s.operator_name
+              ? `<div class="card-sub">
+                  👤 Operator: ${s.operator_name}
+                 </div>`
+              : ''}
+            <span class="type-badge ${typeBadgeClass(s.type)}">
+              ${s.type}
+            </span>
+          </div>
+          <div class="card-actions">
+            ${!s.verified
+              ? `<button class="action-btn btn-approve"
+                  onclick="approveStation('${s.id}', '${s.name}')">
+                  ✅ Approve
+                 </button>`
+              : ''}
+            <button class="action-btn btn-delete"
+              onclick="deleteStation('${s.id}', '${s.name}')">
+              🗑️ Delete
+            </button>
+          </div>
+        </div>
+      `).join('');
+
+    } catch (e) {
+      document.getElementById('stations-list').innerHTML =
+        '<div class="empty"><p>Failed to load stations</p></div>';
+    }
+  }
+
+  // ── LOAD REPORTS ──
+  async function loadReports() {
+    try {
+      const res = await fetch(`${API}/admin/reports`,
+        { headers: headers() });
+      const data = await res.json();
+      const reports = data.data || [];
+
+      document.getElementById('reports-count').textContent =
+        reports.length;
+
+      const list = document.getElementById('reports-list');
+
+      if (reports.length === 0) {
+        list.innerHTML = `
+          <div class="empty">
+            <div class="icon">🚩</div>
+            <p>No reports submitted yet</p>
+          </div>`;
+        return;
+      }
+
+      list.innerHTML = reports.map(r => `
+        <div class="card">
+          <div class="card-info">
+            <div class="card-title">${r.issue_type}</div>
+            <div class="card-sub">
+              📍 Station: <strong>${r.station_name}</strong>
+              (${r.station_type})
+            </div>
+            <div class="card-sub">
+              👤 Reported by: ${r.user_name}
+            </div>
+            <div class="card-sub">
+              🕐 ${new Date(r.created_at).toLocaleString()}
+            </div>
+            ${r.notes
+              ? `<div class="card-sub">
+                  💬 "${r.notes}"
+                 </div>`
+              : ''}
+            ${Object.keys(r.extra_data || {}).length > 0
+              ? `<div class="card-sub">
+                  📋 ${JSON.stringify(r.extra_data)}
+                 </div>`
+              : ''}
+            <span class="type-badge ${r.status === 'pending'
+              ? 'badge-pending' : 'badge-approved'}">
+              ${r.status}
+            </span>
+          </div>
+        </div>
+      `).join('');
+
+    } catch (e) {
+      document.getElementById('reports-list').innerHTML =
+        '<div class="empty"><p>Failed to load reports</p></div>';
+    }
+  }
+
+  // ── APPROVE STATION ──
+  async function approveStation(id, name) {
+    showConfirm(
+      'Approve Station',
+      `Approve "${name}"? It will appear on the map for all users.`,
+      'btn-approve',
+      '✅ Approve',
+      async () => {
+        try {
+          const res = await fetch(
+            `${API}/admin/stations/${id}/approve`,
+            { method: 'PUT', headers: headers() }
+          );
+          if (!res.ok) throw new Error();
+          showToast(`✅ "${name}" approved!`, 'success');
+          loadAll();
+        } catch {
+          showToast('Failed to approve station', 'error');
+        }
+      }
+    );
+  }
+
+  // ── REJECT STATION ──
+  async function rejectStation(id, name) {
+    showConfirm(
+      'Reject Station',
+      `Reject and remove "${name}"? This cannot be undone.`,
+      'btn-reject',
+      '❌ Reject',
+      async () => {
+        try {
+          const res = await fetch(
+            `${API}/admin/stations/${id}`,
+            { method: 'DELETE', headers: headers() }
+          );
+          if (!res.ok) throw new Error();
+          showToast(`❌ "${name}" rejected and removed`, 'error');
+          loadAll();
+        } catch {
+          showToast('Failed to reject station', 'error');
+        }
+      }
+    );
+  }
+
+  // ── DELETE STATION ──
+  async function deleteStation(id, name) {
+    showConfirm(
+      'Delete Station',
+      `Permanently delete "${name}"? This cannot be undone.`,
+      'btn-reject',
+      '🗑️ Delete',
+      async () => {
+        try {
+          const res = await fetch(
+            `${API}/admin/stations/${id}`,
+            { method: 'DELETE', headers: headers() }
+          );
+          if (!res.ok) throw new Error();
+          showToast(`🗑️ "${name}" deleted`, 'error');
+          loadAll();
+        } catch {
+          showToast('Failed to delete station', 'error');
+        }
+      }
+    );
+  }
+
+  // ── HELPERS ──
+  function typeBadgeClass(type) {
+    if (type === 'Petrol/Diesel') return 'badge-petrol';
+    if (type === 'LPG') return 'badge-lpg';
+    if (type === 'EV') return 'badge-ev';
+    return '';
+  }
+
+  function showToast(msg, type = '') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = `show ${type}`;
+    setTimeout(() => t.className = '', 3000);
+  }
+
+  function showConfirm(title, msg, btnClass, btnLabel, action) {
+    document.getElementById('confirm-title').textContent = title;
+    document.getElementById('confirm-message').textContent = msg;
+    const btn = document.getElementById('confirm-ok-btn');
+    btn.className = btnClass === 'btn-approve'
+      ? 'btn-approve' : '';
+    btn.style.background = btnClass === 'btn-approve'
+      ? '#2E7D32' : '#DC2626';
+    btn.textContent = btnLabel;
+    pendingAction = action;
+    document.getElementById('confirm-overlay').classList.add('show');
+  }
+
+  function closeConfirm() {
+    document.getElementById('confirm-overlay')
+      .classList.remove('show');
+    pendingAction = null;
+  }
+
+  async function confirmAction() {
+    closeConfirm();
+    if (pendingAction) await pendingAction();
+  }
+</script>
+</body>
+</html> 

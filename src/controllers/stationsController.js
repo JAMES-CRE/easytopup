@@ -333,6 +333,115 @@ const updatePowerOutput = async (req, res) => {
   }
 };
 
+
+
+// ── GET ALL PENDING STATIONS (admin) ──
+// GET /api/admin/stations/pending
+const getPendingStations = async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT s.*, u.name as operator_name, u.email as operator_email
+       FROM stations s
+       LEFT JOIN users u ON s.operator_id = u.id
+       WHERE s.verified = false
+       ORDER BY s.created_at DESC`
+    );
+
+    res.status(200).json({
+      success: true,
+      count: result.rows.length,
+      data: result.rows,
+    });
+
+  } catch (error) {
+    console.error('Get pending stations error:', error.message);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch pending stations',
+    });
+  }
+};
+
+// ── GET ALL STATIONS (admin) ──
+// GET /api/admin/stations
+const getAllStationsAdmin = async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT s.*, u.name as operator_name
+       FROM stations s
+       LEFT JOIN users u ON s.operator_id = u.id
+       ORDER BY s.created_at DESC`
+    );
+
+    res.status(200).json({
+      success: true,
+      count: result.rows.length,
+      data: result.rows,
+    });
+
+  } catch (error) {
+    console.error('Get all stations error:', error.message);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch stations',
+    });
+  }
+};
+
+// ── REJECT/DELETE STATION (admin) ──
+// DELETE /api/admin/stations/:id
+const rejectStation = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    await pool.query('DELETE FROM stations WHERE id = $1', [id]);
+
+    res.status(200).json({
+      success: true,
+      message: 'Station rejected and removed',
+    });
+
+  } catch (error) {
+    console.error('Reject station error:', error.message);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to reject station',
+    });
+  }
+};
+
+// ── GET ALL REPORTS (admin) ──
+// GET /api/admin/reports
+const getAllReports = async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT r.*, 
+              u.name as user_name,
+              s.name as station_name,
+              s.type as station_type
+       FROM reports r
+       JOIN users u ON r.user_id = u.id
+       JOIN stations s ON r.station_id = s.id
+       ORDER BY r.created_at DESC`
+    );
+
+    res.status(200).json({
+      success: true,
+      count: result.rows.length,
+      data: result.rows,
+    });
+
+  } catch (error) {
+    console.error('Get all reports error:', error.message);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch reports',
+    });
+  }
+};
+
+
+
 module.exports = {
   getAllStations,
   getStationById,
@@ -341,7 +450,10 @@ module.exports = {
   updateStatus,
   updatePowerOutput,
   approveStation,
-
+  getPendingStations,      // ← ADD THIS
+  getAllStationsAdmin,     // ← ADD THIS
+  rejectStation,           // ← ADD THIS
+  getAllReports,          // ← ADD THIS
 };
 
 

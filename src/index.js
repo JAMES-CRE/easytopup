@@ -12,6 +12,12 @@ require('./config/db');
 const stationsRoutes = require('./routes/stations');
 const authRoutes = require('./routes/auth');
 const reportsRoutes = require('./routes/reports');
+const adminRoutes = require('./routes/admin');
+app.use('/api/admin', adminRoutes);
+
+// Add this after app.use(express.json())
+const path = require('path');
+app.use(express.static(path.join(__dirname, '../public')));
 
 const app = express();
 
