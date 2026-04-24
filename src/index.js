@@ -15,9 +15,6 @@ const reportsRoutes = require('./routes/reports');
 const adminRoutes = require('./routes/admin');
 app.use('/api/admin', adminRoutes);
 
-// Add this after app.use(express.json())
-const path = require('path');
-app.use(express.static(path.join(__dirname, '../public')));
 
 const app = express();
 
@@ -40,6 +37,11 @@ app.use(limiter);
 
 // Parse incoming JSON request bodies
 app.use(express.json());
+
+const path = require('path');
+
+// Serve admin dashboard as static file
+app.use(express.static(path.join(__dirname, '../public')));
 
 //ROUTES
 app.use('/api/stations', stationsRoutes);

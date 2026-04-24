@@ -7,11 +7,11 @@ const {
   rejectStation,
   getAllReports,
 } = require('../controllers/stationsController');
-const { authenticate, authorizeAdmin } = require('../middleware/authMiddleware');
+const { protect, adminOnly } = require('../middleware/authMiddleware');
 
-// All admin routes are protected - require login AND admin role
-router.use(authenticate);
-router.use(authorizeAdmin);
+// All admin routes are protected and admin only
+router.use(protect);
+router.use(adminOnly);
 
 // Stations
 router.get('/stations', getAllStationsAdmin);
