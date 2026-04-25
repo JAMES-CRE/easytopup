@@ -366,9 +366,9 @@
 <!-- ── LOGIN SCREEN ── -->
 <div id="login-screen">
   <div class="login-card">
-    <div class="logo">⛽</div>
+   <!-- <div class="logo">⛽</div>-->
     <h2>Easy Top Up</h2>
-    <p>Admin Dashboard — Sign in to continue</p>
+    <p>Admin Dashboard </p>
     <input type="email" id="login-email" placeholder="Admin email" />
     <input type="password" id="login-password" placeholder="Password" />
     <button class="btn btn-green" onclick="adminLogin()">Sign In</button>
@@ -382,7 +382,7 @@
   <!-- Header -->
   <div class="header">
     <div>
-      <h1>⛽ Easy Top Up — Admin</h1>
+      <h1> Admin</h1>
       <span id="admin-name"></span>
     </div>
     <button id="logout-btn" onclick="logout()">Logout</button>
@@ -391,13 +391,13 @@
   <!-- Tabs -->
   <div class="tabs">
     <div class="tab active" onclick="switchTab('pending')">
-      🕐 Pending Stations
+      Pending Stations
     </div>
     <div class="tab" onclick="switchTab('stations')">
-      📍 All Stations
+       All Stations
     </div>
     <div class="tab" onclick="switchTab('reports')">
-      🚩 Reports
+       Reports
     </div>
   </div>
 
@@ -438,7 +438,7 @@
         <div class="label">EV</div>
       </div>
     </div>
-    <div class="section-title">📍 All Stations</div>
+    <div class="section-title"> All Stations</div>
     <div id="stations-list">
       <div class="loading">Loading...</div>
     </div>
@@ -452,7 +452,7 @@
         <div class="label">Total Reports</div>
       </div>
     </div>
-    <div class="section-title">🚩 All Submitted Reports</div>
+    <div class="section-title"> People's Reports</div>
     <div id="reports-list">
       <div class="loading">Loading...</div>
     </div>
@@ -593,7 +593,7 @@
       if (stations.length === 0) {
         list.innerHTML = `
           <div class="empty">
-            <div class="icon">✅</div>
+            <div class="icon"></div>
             <p>No pending stations — all caught up!</p>
           </div>`;
         return;
@@ -604,14 +604,14 @@
           <div class="card-info">
             <div class="card-title">${s.name}</div>
             <div class="card-sub">
-              📍 ${s.lat.toFixed(4)}, ${s.lng.toFixed(4)}
+              loc: ${s.lat.toFixed(4)}, ${s.lng.toFixed(4)}
             </div>
             <div class="card-sub">
-              💰 ${s.price || 'N/A'} &nbsp;|&nbsp;
-              📞 ${s.phone || 'N/A'}
+               price: ${s.price || 'N/A'} &nbsp;|&nbsp;
+               contact: ${s.phone || 'N/A'}
             </div>
             <div class="card-sub">
-              👤 Operator: ${s.operator_name || 'Unknown'}
+               Operator: ${s.operator_name || 'Unknown'}
               (${s.operator_email || ''})
             </div>
             <span class="type-badge ${typeBadgeClass(s.type)}">
@@ -631,11 +631,11 @@
           <div class="card-actions">
             <button class="action-btn btn-approve"
               onclick="approveStation('${s.id}', '${s.name}')">
-              ✅ Approve
+               Approve
             </button>
             <button class="action-btn btn-reject"
               onclick="rejectStation('${s.id}', '${s.name}')">
-              ❌ Reject
+               Reject
             </button>
           </div>
         </div>
@@ -669,7 +669,7 @@
       if (stations.length === 0) {
         list.innerHTML = `
           <div class="empty">
-            <div class="icon">📍</div>
+           < !--<div class="icon"></div>-->
             <p>No stations yet</p>
           </div>`;
         return;
@@ -680,8 +680,8 @@
           <div class="card-info">
             <div class="card-title">${s.name}</div>
             <div class="card-sub">
-              💰 ${s.price || 'N/A'} &nbsp;|&nbsp;
-              📞 ${s.phone || 'N/A'}
+              price; ${s.price || 'N/A'} &nbsp;|&nbsp;
+              phone:${s.phone || 'N/A'}
             </div>
             <div class="card-sub">
               Status: <strong>${s.status}</strong> &nbsp;|&nbsp;
@@ -700,12 +700,12 @@
             ${!s.verified
               ? `<button class="action-btn btn-approve"
                   onclick="approveStation('${s.id}', '${s.name}')">
-                  ✅ Approve
+                   Approve
                  </button>`
               : ''}
             <button class="action-btn btn-delete"
               onclick="deleteStation('${s.id}', '${s.name}')">
-              🗑️ Delete
+              Delete
             </button>
           </div>
         </div>
@@ -733,7 +733,7 @@
       if (reports.length === 0) {
         list.innerHTML = `
           <div class="empty">
-            <div class="icon">🚩</div>
+            <div class="icon"></div>
             <p>No reports submitted yet</p>
           </div>`;
         return;
@@ -744,23 +744,23 @@
           <div class="card-info">
             <div class="card-title">${r.issue_type}</div>
             <div class="card-sub">
-              📍 Station: <strong>${r.station_name}</strong>
+               Station: <strong>${r.station_name}</strong>
               (${r.station_type})
             </div>
             <div class="card-sub">
-              👤 Reported by: ${r.user_name}
+              Reported by: ${r.user_name}
             </div>
             <div class="card-sub">
-              🕐 ${new Date(r.created_at).toLocaleString()}
+               ${new Date(r.created_at).toLocaleString()}
             </div>
             ${r.notes
               ? `<div class="card-sub">
-                  💬 "${r.notes}"
+                  "${r.notes}"
                  </div>`
               : ''}
             ${Object.keys(r.extra_data || {}).length > 0
               ? `<div class="card-sub">
-                  📋 ${JSON.stringify(r.extra_data)}
+                   ${JSON.stringify(r.extra_data)}
                  </div>`
               : ''}
             <span class="type-badge ${r.status === 'pending'
@@ -783,7 +783,7 @@
       'Approve Station',
       `Approve "${name}"? It will appear on the map for all users.`,
       'btn-approve',
-      '✅ Approve',
+      ' Approve',
       async () => {
         try {
           const res = await fetch(
@@ -791,7 +791,7 @@
             { method: 'PUT', headers: headers() }
           );
           if (!res.ok) throw new Error();
-          showToast(`✅ "${name}" approved!`, 'success');
+          showToast(` "${name}" approved!`, 'success');
           loadAll();
         } catch {
           showToast('Failed to approve station', 'error');
@@ -806,7 +806,7 @@
       'Reject Station',
       `Reject and remove "${name}"? This cannot be undone.`,
       'btn-reject',
-      '❌ Reject',
+      ' Reject',
       async () => {
         try {
           const res = await fetch(
@@ -814,7 +814,7 @@
             { method: 'DELETE', headers: headers() }
           );
           if (!res.ok) throw new Error();
-          showToast(`❌ "${name}" rejected and removed`, 'error');
+          showToast(` "${name}" rejected and removed`, 'error');
           loadAll();
         } catch {
           showToast('Failed to reject station', 'error');
@@ -829,7 +829,7 @@
       'Delete Station',
       `Permanently delete "${name}"? This cannot be undone.`,
       'btn-reject',
-      '🗑️ Delete',
+      ' Delete',
       async () => {
         try {
           const res = await fetch(
@@ -837,7 +837,7 @@
             { method: 'DELETE', headers: headers() }
           );
           if (!res.ok) throw new Error();
-          showToast(`🗑️ "${name}" deleted`, 'error');
+          showToast(` "${name}" deleted`, 'error');
           loadAll();
         } catch {
           showToast('Failed to delete station', 'error');
