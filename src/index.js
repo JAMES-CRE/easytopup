@@ -2,7 +2,7 @@ require('dotenv').config();
 
 const express = require('express');
 const cors = require('cors');
-const helmet = require('helmet');
+//const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const path = require('path');
 
@@ -13,15 +13,18 @@ const app = express();
 require('./config/db');
 
 // ── SECURITY MIDDLEWARE ──
-//app.use(helmet());
+const helmet = require('helmet');
+
+// Replace your existing helmet line with this FULL configuration
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
       styleSrc: ["'self'", "'unsafe-inline'"],
       imgSrc: ["'self'", "data:", "https:"],
       connectSrc: ["'self'", "https:"],
+      scriptSrcAttr: ["'unsafe-inline'"],  // ← This allows onclick handlers
     },
   },
 }));
