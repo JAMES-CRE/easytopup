@@ -686,32 +686,33 @@
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${TOKEN}`,
             };
-        };
-        // ── LOAD PENDING STATIONS ──
-        async function loadPending() {
-            try {
-                const res = await fetch(`${API}/admin/stations/pending`,
-                    { headers: headers() });
-                const data = await res.json();
-                const stations = data.data || [];
 
-                document.getElementById('pending-count').textContent =
-                    stations.length;
-                document.getElementById('pending-badge').textContent =
-                    stations.length;
+         };
+            // ── LOAD PENDING STATIONS ──
+            async function loadPending() {
+                try {
+                    const res = await fetch(`${API}/admin/stations/pending`,
+                        { headers: headers() });
+                    const data = await res.json();
+                    const stations = data.data || [];
 
-                const list = document.getElementById('pending-list');
+                    document.getElementById('pending-count').textContent =
+                        stations.length;
+                    document.getElementById('pending-badge').textContent =
+                        stations.length;
 
-                if (stations.length === 0) {
-                    list.innerHTML = `
+                    const list = document.getElementById('pending-list');
+
+                    if (stations.length === 0) {
+                        list.innerHTML = `
           <div class="empty">
             <div class="icon"></div>
             <p>No pending stations — all caught up!</p>
           </div>`;
-                    return;
-                }
+                        return;
+                    }
 
-                list.innerHTML = stations.map(s => `
+                    list.innerHTML = stations.map(s => `
         <div class="card">
           <div class="card-info">
             <div class="card-title">${s.name}</div>
@@ -730,15 +731,15 @@
               ${s.type}
             </span>
             ${s.connector
-                        ? `<span class="type-badge badge-ev" style="margin-left:6px">
+                            ? `<span class="type-badge badge-ev" style="margin-left:6px">
                   ${s.connector}
                  </span>`
-                        : ''}
+                            : ''}
             ${s.power_output
-                        ? `<span class="type-badge badge-ev" style="margin-left:6px">
+                            ? `<span class="type-badge badge-ev" style="margin-left:6px">
                   ${s.power_output}
                  </span>`
-                        : ''}
+                            : ''}
           </div>
           <div class="card-actions">
             <button class="action-btn btn-approve"
@@ -753,41 +754,41 @@
         </div>
       `).join('');
 
-            } catch (e) {
-                document.getElementById('pending-list').innerHTML =
-                    '<div class="empty"><p>Failed to load pending stations</p></div>';
+                } catch (e) {
+                    document.getElementById('pending-list').innerHTML =
+                        '<div class="empty"><p>Failed to load pending stations</p></div>';
+                }
             }
-        }
 
-        // ── LOAD ALL STATIONS ──
-        async function loadStations() {
-            try {
-                const res = await fetch(`${API}/admin/stations`,
-                    { headers: headers() });
-                const data = await res.json();
-                const stations = data.data || [];
+            // ── LOAD ALL STATIONS ──
+            async function loadStations() {
+                try {
+                    const res = await fetch(`${API}/admin/stations`,
+                        { headers: headers() });
+                    const data = await res.json();
+                    const stations = data.data || [];
 
-                document.getElementById('total-stations').textContent =
-                    stations.length;
-                document.getElementById('petrol-count').textContent =
-                    stations.filter(s => s.type === 'Petrol/Diesel').length;
-                document.getElementById('lpg-count').textContent =
-                    stations.filter(s => s.type === 'LPG').length;
-                document.getElementById('ev-count').textContent =
-                    stations.filter(s => s.type === 'EV').length;
+                    document.getElementById('total-stations').textContent =
+                        stations.length;
+                    document.getElementById('petrol-count').textContent =
+                        stations.filter(s => s.type === 'Petrol/Diesel').length;
+                    document.getElementById('lpg-count').textContent =
+                        stations.filter(s => s.type === 'LPG').length;
+                    document.getElementById('ev-count').textContent =
+                        stations.filter(s => s.type === 'EV').length;
 
-                const list = document.getElementById('stations-list');
+                    const list = document.getElementById('stations-list');
 
-                if (stations.length === 0) {
-                    list.innerHTML = `
+                    if (stations.length === 0) {
+                        list.innerHTML = `
           <div class="empty">
            < !--<div class="icon"></div>-->
             <p>No stations yet</p>
           </div>`;
-                    return;
-                }
+                        return;
+                    }
 
-                list.innerHTML = stations.map(s => `
+                    list.innerHTML = stations.map(s => `
         <div class="card">
           <div class="card-info">
             <div class="card-title">${s.name}</div>
@@ -800,21 +801,21 @@
               Verified: <strong>${s.verified ? '✅' : '❌'}</strong>
             </div>
             ${s.operator_name
-                        ? `<div class="card-sub">
+                            ? `<div class="card-sub">
                   👤 Operator: ${s.operator_name}
                  </div>`
-                        : ''}
+                            : ''}
             <span class="type-badge ${typeBadgeClass(s.type)}">
               ${s.type}
             </span>
           </div>
           <div class="card-actions">
             ${!s.verified
-                        ? `<button class="action-btn btn-approve"
+                            ? `<button class="action-btn btn-approve"
                   onclick="approveStation('${s.id}', '${s.name}')">
                    Approve
                  </button>`
-                        : ''}
+                            : ''}
             <button class="action-btn btn-delete"
               onclick="deleteStation('${s.id}', '${s.name}')">
               Delete
@@ -823,35 +824,35 @@
         </div>
       `).join('');
 
-            } catch (e) {
-                document.getElementById('stations-list').innerHTML =
-                    '<div class="empty"><p>Failed to load stations</p></div>';
+                } catch (e) {
+                    document.getElementById('stations-list').innerHTML =
+                        '<div class="empty"><p>Failed to load stations</p></div>';
+                }
             }
-        }
 
-        // ── LOAD REPORTS ──
-        async function loadReports() {
-            try {
-                const res = await fetch(`${API}/admin/reports`,
-                    { headers: headers() });
-                const data = await res.json();
-                const reports = data.data || [];
+            // ── LOAD REPORTS ──
+            async function loadReports() {
+                try {
+                    const res = await fetch(`${API}/admin/reports`,
+                        { headers: headers() });
+                    const data = await res.json();
+                    const reports = data.data || [];
 
-                document.getElementById('reports-count').textContent =
-                    reports.length;
+                    document.getElementById('reports-count').textContent =
+                        reports.length;
 
-                const list = document.getElementById('reports-list');
+                    const list = document.getElementById('reports-list');
 
-                if (reports.length === 0) {
-                    list.innerHTML = `
+                    if (reports.length === 0) {
+                        list.innerHTML = `
           <div class="empty">
             <div class="icon"></div>
             <p>No reports submitted yet</p>
           </div>`;
-                    return;
-                }
+                        return;
+                    }
 
-                list.innerHTML = reports.map(r => `
+                    list.innerHTML = reports.map(r => `
         <div class="card">
           <div class="card-info">
             <div class="card-title">${r.issue_type}</div>
@@ -866,136 +867,136 @@
                ${new Date(r.created_at).toLocaleString()}
             </div>
             ${r.notes
-                        ? `<div class="card-sub">
+                            ? `<div class="card-sub">
                   "${r.notes}"
                  </div>`
-                        : ''}
+                            : ''}
             ${Object.keys(r.extra_data || {}).length > 0
-                        ? `<div class="card-sub">
+                            ? `<div class="card-sub">
                    ${JSON.stringify(r.extra_data)}
                  </div>`
-                        : ''}
+                            : ''}
             <span class="type-badge ${r.status === 'pending'
-                        ? 'badge-pending' : 'badge-approved'}">
+                            ? 'badge-pending' : 'badge-approved'}">
               ${r.status}
             </span>
           </div>
         </div>
       `).join('');
 
-            } catch (e) {
-                document.getElementById('reports-list').innerHTML =
-                    '<div class="empty"><p>Failed to load reports</p></div>';
+                } catch (e) {
+                    document.getElementById('reports-list').innerHTML =
+                        '<div class="empty"><p>Failed to load reports</p></div>';
+                }
             }
-        }
 
-        // ── APPROVE STATION ──
-        async function approveStation(id, name) {
-            showConfirm(
-                'Approve Station',
-                `Approve "${name}"? It will appear on the map for all users.`,
-                'btn-approve',
-                ' Approve',
-                async () => {
-                    try {
-                        const res = await fetch(
-                            `${API}/admin/stations/${id}/approve`,
-                            { method: 'PUT', headers: headers() }
-                        );
-                        if (!res.ok) throw new Error();
-                        showToast(` "${name}" approved!`, 'success');
-                        loadAll();
-                    } catch {
-                        showToast('Failed to approve station', 'error');
+            // ── APPROVE STATION ──
+            async function approveStation(id, name) {
+                showConfirm(
+                    'Approve Station',
+                    `Approve "${name}"? It will appear on the map for all users.`,
+                    'btn-approve',
+                    ' Approve',
+                    async () => {
+                        try {
+                            const res = await fetch(
+                                `${API}/admin/stations/${id}/approve`,
+                                { method: 'PUT', headers: headers() }
+                            );
+                            if (!res.ok) throw new Error();
+                            showToast(` "${name}" approved!`, 'success');
+                            loadAll();
+                        } catch {
+                            showToast('Failed to approve station', 'error');
+                        }
                     }
-                }
-            );
-        }
+                );
+            }
 
-        // ── REJECT STATION ──
-        async function rejectStation(id, name) {
-            showConfirm(
-                'Reject Station',
-                `Reject and remove "${name}"? This cannot be undone.`,
-                'btn-reject',
-                ' Reject',
-                async () => {
-                    try {
-                        const res = await fetch(
-                            `${API}/admin/stations/${id}`,
-                            { method: 'DELETE', headers: headers() }
-                        );
-                        if (!res.ok) throw new Error();
-                        showToast(` "${name}" rejected and removed`, 'error');
-                        loadAll();
-                    } catch {
-                        showToast('Failed to reject station', 'error');
+            // ── REJECT STATION ──
+            async function rejectStation(id, name) {
+                showConfirm(
+                    'Reject Station',
+                    `Reject and remove "${name}"? This cannot be undone.`,
+                    'btn-reject',
+                    ' Reject',
+                    async () => {
+                        try {
+                            const res = await fetch(
+                                `${API}/admin/stations/${id}`,
+                                { method: 'DELETE', headers: headers() }
+                            );
+                            if (!res.ok) throw new Error();
+                            showToast(` "${name}" rejected and removed`, 'error');
+                            loadAll();
+                        } catch {
+                            showToast('Failed to reject station', 'error');
+                        }
                     }
-                }
-            );
-        }
+                );
+            }
 
-        // ── DELETE STATION ──
-        async function deleteStation(id, name) {
-            showConfirm(
-                'Delete Station',
-                `Permanently delete "${name}"? This cannot be undone.`,
-                'btn-reject',
-                ' Delete',
-                async () => {
-                    try {
-                        const res = await fetch(
-                            `${API}/admin/stations/${id}`,
-                            { method: 'DELETE', headers: headers() }
-                        );
-                        if (!res.ok) throw new Error();
-                        showToast(` "${name}" deleted`, 'error');
-                        loadAll();
-                    } catch {
-                        showToast('Failed to delete station', 'error');
+            // ── DELETE STATION ──
+            async function deleteStation(id, name) {
+                showConfirm(
+                    'Delete Station',
+                    `Permanently delete "${name}"? This cannot be undone.`,
+                    'btn-reject',
+                    ' Delete',
+                    async () => {
+                        try {
+                            const res = await fetch(
+                                `${API}/admin/stations/${id}`,
+                                { method: 'DELETE', headers: headers() }
+                            );
+                            if (!res.ok) throw new Error();
+                            showToast(` "${name}" deleted`, 'error');
+                            loadAll();
+                        } catch {
+                            showToast('Failed to delete station', 'error');
+                        }
                     }
-                }
-            );
-        }
+                );
+            }
 
-        // ── HELPERS ──
-        function typeBadgeClass(type) {
-            if (type === 'Petrol/Diesel') return 'badge-petrol';
-            if (type === 'LPG') return 'badge-lpg';
-            if (type === 'EV') return 'badge-ev';
-            return '';
-        }
+            // ── HELPERS ──
+            function typeBadgeClass(type) {
+                if (type === 'Petrol/Diesel') return 'badge-petrol';
+                if (type === 'LPG') return 'badge-lpg';
+                if (type === 'EV') return 'badge-ev';
+                return '';
+            }
 
-        function showToast(msg, type = '') {
-            const t = document.getElementById('toast');
-            t.textContent = msg;
-            t.className = `show ${type}`;
-            setTimeout(() => t.className = '', 3000);
-        }
+            function showToast(msg, type = '') {
+                const t = document.getElementById('toast');
+                t.textContent = msg;
+                t.className = `show ${type}`;
+                setTimeout(() => t.className = '', 3000);
+            }
 
-        function showConfirm(title, msg, btnClass, btnLabel, action) {
-            document.getElementById('confirm-title').textContent = title;
-            document.getElementById('confirm-message').textContent = msg;
-            const btn = document.getElementById('confirm-ok-btn');
-            btn.className = btnClass === 'btn-approve'
-                ? 'btn-approve' : '';
-            btn.style.background = btnClass === 'btn-approve'
-                ? '#2E7D32' : '#DC2626';
-            btn.textContent = btnLabel;
-            pendingAction = action;
-            document.getElementById('confirm-overlay').classList.add('show');
-        }
+            function showConfirm(title, msg, btnClass, btnLabel, action) {
+                document.getElementById('confirm-title').textContent = title;
+                document.getElementById('confirm-message').textContent = msg;
+                const btn = document.getElementById('confirm-ok-btn');
+                btn.className = btnClass === 'btn-approve'
+                    ? 'btn-approve' : '';
+                btn.style.background = btnClass === 'btn-approve'
+                    ? '#2E7D32' : '#DC2626';
+                btn.textContent = btnLabel;
+                pendingAction = action;
+                document.getElementById('confirm-overlay').classList.add('show');
+            }
 
-        function closeConfirm() {
-            document.getElementById('confirm-overlay')
-                .classList.remove('show');
-            pendingAction = null;
-        }
+            function closeConfirm() {
+                document.getElementById('confirm-overlay')
+                    .classList.remove('show');
+                pendingAction = null;
+            }
 
-        async function confirmAction() {
-            closeConfirm();
-            if (pendingAction) await pendingAction();
-        }
+            async function confirmAction() {
+                closeConfirm();
+                if (pendingAction) await pendingAction();
+            }
     </script>
 </body>
 

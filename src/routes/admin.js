@@ -15,12 +15,10 @@ router.use(adminOnly);
 
 // Stations
 router.get('/stations', getAllStationsAdmin);
-router.get('/stations/pending', getPendingStations);
+router.get('/stations/pending', getPendingStations);  // ← must be before /:id
 router.put('/stations/:id/approve', approveStation);
 router.delete('/stations/:id', rejectStation);
-
-
-// Reports
 router.get('/reports', getAllReports);
+
 
 module.exports = router;
