@@ -19,6 +19,7 @@ router.get('/stations/pending', getPendingStations);
 router.put('/stations/:id/approve', approveStation);
 router.delete('/stations/:id', rejectStation);
 
+
 // Reports
 router.get('/reports', getAllReports);
 
