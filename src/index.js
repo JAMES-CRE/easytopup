@@ -13,7 +13,18 @@ const app = express();
 require('./config/db');
 
 // ── SECURITY MIDDLEWARE ──
-app.use(helmet());
+//app.use(helmet());
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", "data:", "https:"],
+      connectSrc: ["'self'", "https:"],
+    },
+  },
+}));
 
 // cors allows Flutter app to make requests
 app.use(cors());
