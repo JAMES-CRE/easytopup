@@ -40,6 +40,12 @@ const limiter = rateLimit({
     success: false,
     message: 'Too many requests. Please try again later.',
   },
+
+validate: {
+    xForwardedForHeader: false,  // ← Disable this validation
+    trustProxy: false,            // ← Disable this validation
+  },
+
 });
 app.use(limiter);
 
@@ -48,6 +54,8 @@ app.use(express.json());
 
 // Serve admin dashboard as static file
 app.use(express.static(path.join(__dirname, '../public')));
+
+app.set('trust proxy', 1);
 
 // ── IMPORT ROUTES (after app is created) ──
 const stationsRoutes = require('./routes/stations');
