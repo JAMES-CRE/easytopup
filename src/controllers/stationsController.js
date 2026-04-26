@@ -443,10 +443,6 @@ const getAllReports = async (req, res) => {
 // ── GET OPERATOR'S OWN STATION ──
 const getMyStation = async (req, res) => {
   try {
-    console.log('=== getMyStation called ===');
-    console.log('User ID from token:', req.user.id);
-    console.log('User role:', req.user.role);
-
 
     const result = await pool.query(
       `SELECT s.*, 
@@ -458,8 +454,6 @@ const getMyStation = async (req, res) => {
       [req.user.id]
     );
 
-    console.log('Query result rows:', result.rows.length);
-    console.log('Station found:', result.rows[0]?.id || 'none');
 
     if (result.rows.length === 0) {
       return res.status(404).json({
