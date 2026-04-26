@@ -589,578 +589,229 @@
     </div>
 
     <script>
-        // ── CONFIG ──
-        const API = 'https://easytopup-finalyearproject.up.railway.app/api';
-        // ↑ Replace with your actual Railway URL
+       // ── CONFIG ──
+const API = 'https://easytopup-finalyearproject.up.railway.app/api';
+let TOKEN = localStorage.getItem('admin_token') || '';
 
-        let TOKEN = localStorage.getItem('admin_token') || '';
-        let pendingAction = null;
+// ── HELPER: Headers ──
+const headers = () => ({
+  'Content-Type': 'application/json',
+  'Authorization': `Bearer ${TOKEN}`,
+});
 
-        // ── ON PAGE LOAD ──
-        window.onload = () => {
-            if (TOKEN) {
-                showDashboard();
-                loadAll();
-            }
-        };
+// ── HELPER: Toast ──
+function showToast(msg, type = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `show ${type}`;
+  setTimeout(() => t.className = '', 3000);
+}
 
-        // ── LOGIN ──
-        async function adminLogin() {
-            const email = document.getElementById('login-email').value;
-            const password = document.getElementById('login-password').value;
-            const errEl = document.getElementById('login-error');
-            errEl.textContent = '';
+// ── HELPER: Confirm Dialog ──
+function showConfirm(title, msg, btnClass, btnLabel, action) {
+  document.getElementById('confirm-title').textContent = title;
+  document.getElementById('confirm-message').textContent = msg;
+  const btn = document.getElementById('confirm-ok-btn');
+  btn.className = btnClass;
+  btn.textContent = btnLabel;
+  window.pendingAction = action;
+  document.getElementById('confirm-overlay').classList.add('show');
+}
 
-            try {
-                const res = await fetch(`${API}/auth/login`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, password }),
-                });
+function closeConfirm() {
+  document.getElementById('confirm-overlay').classList.remove('show');
+  window.pendingAction = null;
+}
 
-                const data = await res.json();
+async function confirmAction() {
+  const action = window.pendingAction;
+  closeConfirm();
+  if (action) await action();
+}
 
-                if (!res.ok) {
-                    errEl.textContent = data.message || 'Login failed';
-                    return;
-                }
+// ── TYPE BADGE CLASS ──
+function typeBadgeClass(type) {
+  if (type === 'Petrol/Diesel') return 'badge-petrol';
+  if (type === 'LPG') return 'badge-lpg';
+  if (type === 'EV') return 'badge-ev';
+  return '';
+}
 
-                // Check if user is admin
-                if (data.data.role !== 'admin') {
-                    errEl.textContent = 'Access denied. Admin accounts only.';
-                    return;
-                }
+// ── LOAD PENDING STATIONS ──
+async function loadPending() {
+  try {
+    const res = await fetch(`${API}/admin/stations/pending`, { headers: headers() });
+    const data = await res.json();
+    const stations = data.data || [];
 
-                TOKEN = data.data.token;
-                localStorage.setItem('admin_token', TOKEN);
-                document.getElementById('admin-name').textContent =
-                    `Logged in as ${data.data.name}`;
+    document.getElementById('pending-count').textContent = stations.length;
+    document.getElementById('pending-badge').textContent = stations.length;
 
-                showDashboard();
-                loadAll();
+    const list = document.getElementById('pending-list');
+    if (stations.length === 0) {
+      list.innerHTML = `<div class="empty"><div class="icon">✅</div><p>No pending stations — all caught up!</p></div>`;
+      return;
+    }
 
-            } catch (e) {
-                errEl.textContent = 'Network error. Try again.';
-            }
-        }
-
-        // ── SHOW DASHBOARD ──
-        function showDashboard() {
-            document.getElementById('login-screen').style.display = 'none';
-            document.getElementById('dashboard').style.display = 'block';
-        }
-
-        // ── LOGOUT ──
-        function logout() {
-            TOKEN = '';
-            localStorage.removeItem('admin_token');
-            document.getElementById('login-screen').style.display = 'flex';
-            document.getElementById('dashboard').style.display = 'none';
-        }
-
-        // ── LOAD ALL DATA ──
-        function loadAll() {
-            loadPending();
-            loadStations();
-            loadReports();
-        }
-
-        // ── SWITCH TAB ──
-        function switchTab(tab) {
-            document.querySelectorAll('.tab').forEach(t =>
-                t.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(t =>
-                t.classList.remove('active'));
-
-            document.querySelectorAll('.tab')[
-                ['pending', 'stations', 'reports'].indexOf(tab)
-            ].classList.add('active');
-
-            document.getElementById(`tab-${tab}`).classList.add('active');
-        }
-
-        // ── HEADERS ──
-        const headers = () => {
-            console.log('Token being sent:', TOKEN ? 'YES' : 'NO - TOKEN IS EMPTY');
-            return {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${TOKEN}`,
-            };
-
-         };
-            // ── LOAD PENDING STATIONS ──
-            async function loadPending() {
-                try {
-                    const res = await fetch(`${API}/admin/stations/pending`,
-                        { headers: headers() });
-                    const data = await res.json();
-                    const stations = data.data || [];
-
-                    document.getElementById('pending-count').textContent =
-                        stations.length;
-                    document.getElementById('pending-badge').textContent =
-                        stations.length;
-
-                    const list = document.getElementById('pending-list');
-
-                    if (stations.length === 0) {
-                        list.innerHTML = `
-          <div class="empty">
-            <div class="icon"></div>
-            <p>No pending stations — all caught up!</p>
-          </div>`;
-                        return;
-                    }
-
-                    list.innerHTML = stations.map(s => `
-  <div class="card">
-    <div class="card-info">
-      <div class="card-title">${s.name}</div>
-      <div class="card-sub">
-        📍 ${parseFloat(s.lat).toFixed(4)}, ${parseFloat(s.lng).toFixed(4)}
-      </div>
-      <div class="card-sub">
-        💰 ${s.price || 'N/A'} &nbsp;|&nbsp;
-        📞 ${s.phone || 'N/A'}
-      </div>
-      <div class="card-sub">
-        👤 Operator: ${s.operator_name || 'Unknown'}
-        (${s.operator_email || ''})
-      </div>
-      <span class="type-badge ${typeBadgeClass(s.type)}">
-        ${s.type}
-      </span>
-      ${s.connector
-        ? `<span class="type-badge badge-ev" style="margin-left:6px">
-            ${s.connector}
-           </span>`
-        : ''}
-      ${s.power_output
-        ? `<span class="type-badge badge-ev" style="margin-left:6px">
-            ${s.power_output}
-           </span>`
-        : ''}
-    </div>
-    <div class="card-actions">
-      <button class="action-btn btn-approve"
-        data-id="${s.id}"
-        data-name="${s.name}"
-        data-action="approve">
-        ✅ Approve
-      </button>
-      <button class="action-btn btn-reject"
-        data-id="${s.id}"
-        data-name="${s.name}"
-        data-action="reject">
-        ❌ Reject
-      </button>
-    </div>
-  </div>
-`).join('');
-
-                   /* list.innerHTML = stations.map(s => `
-        <div class="card">
-          <div class="card-info">
-            <div class="card-title">${s.name}</div>
-            <div class="card-sub">
-              loc: ${s.lat.toFixed(4)}, ${s.lng.toFixed(4)}
-            </div>
-            <div class="card-sub">
-               price: ${s.price || 'N/A'} &nbsp;|&nbsp;
-               contact: ${s.phone || 'N/A'}
-            </div>
-            <div class="card-sub">
-               Operator: ${s.operator_name || 'Unknown'}
-              (${s.operator_email || ''})
-            </div>
-            <span class="type-badge ${typeBadgeClass(s.type)}">
-              ${s.type}
-            </span>
-            ${s.connector
-                            ? `<span class="type-badge badge-ev" style="margin-left:6px">
-                  ${s.connector}
-                 </span>`
-                            : ''}
-            ${s.power_output
-                            ? `<span class="type-badge badge-ev" style="margin-left:6px">
-                  ${s.power_output}
-                 </span>`
-                            : ''}
-          </div>
-          <div class="card-actions">
-            <button class="action-btn btn-approve"
-              onclick="approveStation('${s.id}', '${s.name}')">
-               Approve
-            </button>
-            <button class="action-btn btn-reject"
-              onclick="rejectStation('${s.id}', '${s.name}')">
-               Reject
-            </button>
-          </div>
+    list.innerHTML = stations.map(s => `
+      <div class="card">
+        <div class="card-info">
+          <div class="card-title">${escapeHtml(s.name)}</div>
+          <div class="card-sub">📍 ${parseFloat(s.lat).toFixed(4)}, ${parseFloat(s.lng).toFixed(4)}</div>
+          <div class="card-sub">💰 ${s.price || 'N/A'} | 📞 ${s.phone || 'N/A'}</div>
+          <div class="card-sub">👤 Operator: ${s.operator_name || 'Unknown'} (${s.operator_email || ''})</div>
+          <span class="type-badge ${typeBadgeClass(s.type)}">${s.type}</span>
         </div>
-      `).join('');*/
-
-                } catch (e) {
-                    document.getElementById('pending-list').innerHTML =
-                        '<div class="empty"><p>Failed to load pending stations</p></div>';
-                }
-            }
-
-            // ── LOAD ALL STATIONS ──
-            async function loadStations() {
-                try {
-                    const res = await fetch(`${API}/admin/stations`,
-                        { headers: headers() });
-                    const data = await res.json();
-                    const stations = data.data || [];
-
-                    document.getElementById('total-stations').textContent =
-                        stations.length;
-                    document.getElementById('petrol-count').textContent =
-                        stations.filter(s => s.type === 'Petrol/Diesel').length;
-                    document.getElementById('lpg-count').textContent =
-                        stations.filter(s => s.type === 'LPG').length;
-                    document.getElementById('ev-count').textContent =
-                        stations.filter(s => s.type === 'EV').length;
-
-                    const list = document.getElementById('stations-list');
-
-                    if (stations.length === 0) {
-                        list.innerHTML = `
-          <div class="empty">
-           < !--<div class="icon"></div>-->
-            <p>No stations yet</p>
-          </div>`;
-                        return;
-                    }
-                    list.innerHTML = stations.map(s => `
-  <div class="card">
-    <div class="card-info">
-      <div class="card-title">${s.name}</div>
-      <div class="card-sub">
-        💰 ${s.price || 'N/A'} &nbsp;|&nbsp;
-        📞 ${s.phone || 'N/A'}
-      </div>
-      <div class="card-sub">
-        Status: <strong>${s.status}</strong> &nbsp;|&nbsp;
-        Verified: <strong>${s.verified ? '✅' : '❌'}</strong>
-      </div>
-      ${s.operator_name
-        ? `<div class="card-sub">
-            👤 Operator: ${s.operator_name}
-           </div>`
-        : ''}
-      <span class="type-badge ${typeBadgeClass(s.type)}">
-        ${s.type}
-      </span>
-    </div>
-    <div class="card-actions">
-      ${!s.verified
-        ? `<button class="action-btn btn-approve"
-            data-id="${s.id}"
-            data-name="${s.name}"
-            data-action="approve">
-            ✅ Approve
-           </button>`
-        : ''}
-      <button class="action-btn btn-delete"
-        data-id="${s.id}"
-        data-name="${s.name}"
-        data-action="delete">
-        🗑️ Delete
-      </button>
-    </div>
-  </div>
-`).join('');
-
-                   /* list.innerHTML = stations.map(s => `
-        <div class="card">
-          <div class="card-info">
-            <div class="card-title">${s.name}</div>
-            <div class="card-sub">
-              price; ${s.price || 'N/A'} &nbsp;|&nbsp;
-              phone:${s.phone || 'N/A'}
-            </div>
-            <div class="card-sub">
-              Status: <strong>${s.status}</strong> &nbsp;|&nbsp;
-              Verified: <strong>${s.verified ? '✅' : '❌'}</strong>
-            </div>
-            ${s.operator_name
-                            ? `<div class="card-sub">
-                  👤 Operator: ${s.operator_name}
-                 </div>`
-                            : ''}
-            <span class="type-badge ${typeBadgeClass(s.type)}">
-              ${s.type}
-            </span>
-          </div>
-          <div class="card-actions">
-            ${!s.verified
-                            ? `<button class="action-btn btn-approve"
-                  onclick="approveStation('${s.id}', '${s.name}')">
-                   Approve
-                 </button>`
-                            : ''}
-            <button class="action-btn btn-delete"
-              onclick="deleteStation('${s.id}', '${s.name}')">
-              Delete
-            </button>
-          </div>
+        <div class="card-actions">
+          <button class="action-btn btn-approve" data-id="${s.id}" data-name="${escapeHtml(s.name)}" data-action="approve">✅ Approve</button>
+          <button class="action-btn btn-reject" data-id="${s.id}" data-name="${escapeHtml(s.name)}" data-action="reject">❌ Reject</button>
         </div>
-      `).join('');*/
+      </div>
+    `).join('');
+  } catch (e) {
+    console.error('loadPending error:', e);
+  }
+}
 
-                } catch (e) {
-                    document.getElementById('stations-list').innerHTML =
-                        '<div class="empty"><p>Failed to load stations</p></div>';
-                }
-            }
+// ── LOAD ALL STATIONS ──
+async function loadStations() {
+  try {
+    const res = await fetch(`${API}/admin/stations`, { headers: headers() });
+    const data = await res.json();
+    const stations = data.data || [];
 
-            // ── LOAD REPORTS ──
-            async function loadReports() {
-                try {
-                    const res = await fetch(`${API}/admin/reports`,
-                        { headers: headers() });
-                    const data = await res.json();
-                    const reports = data.data || [];
+    document.getElementById('total-stations').textContent = stations.length;
+    document.getElementById('petrol-count').textContent = stations.filter(s => s.type === 'Petrol/Diesel').length;
+    document.getElementById('lpg-count').textContent = stations.filter(s => s.type === 'LPG').length;
+    document.getElementById('ev-count').textContent = stations.filter(s => s.type === 'EV').length;
 
-                    document.getElementById('reports-count').textContent =
-                        reports.length;
+    const list = document.getElementById('stations-list');
+    if (stations.length === 0) {
+      list.innerHTML = `<div class="empty"><div class="icon">📍</div><p>No stations yet</p></div>`;
+      return;
+    }
 
-                    const list = document.getElementById('reports-list');
-
-                    if (reports.length === 0) {
-                        list.innerHTML = `
-          <div class="empty">
-            <div class="icon"></div>
-            <p>No reports submitted yet</p>
-          </div>`;
-                        return;
-                    }
-
-                    list.innerHTML = reports.map(r => `
-        <div class="card">
-          <div class="card-info">
-            <div class="card-title">${r.issue_type}</div>
-            <div class="card-sub">
-               Station: <strong>${r.station_name}</strong>
-              (${r.station_type})
-            </div>
-            <div class="card-sub">
-              Reported by: ${r.user_name}
-            </div>
-            <div class="card-sub">
-               ${new Date(r.created_at).toLocaleString()}
-            </div>
-            ${r.notes
-                            ? `<div class="card-sub">
-                  "${r.notes}"
-                 </div>`
-                            : ''}
-            ${Object.keys(r.extra_data || {}).length > 0
-                            ? `<div class="card-sub">
-                   ${JSON.stringify(r.extra_data)}
-                 </div>`
-                            : ''}
-            <span class="type-badge ${r.status === 'pending'
-                            ? 'badge-pending' : 'badge-approved'}">
-              ${r.status}
-            </span>
-          </div>
+    list.innerHTML = stations.map(s => `
+      <div class="card">
+        <div class="card-info">
+          <div class="card-title">${escapeHtml(s.name)}</div>
+          <div class="card-sub">💰 ${s.price || 'N/A'} | 📞 ${s.phone || 'N/A'}</div>
+          <div class="card-sub">Status: <strong>${s.status}</strong> | Verified: <strong>${s.verified ? '✅' : '❌'}</strong></div>
+          ${s.operator_name ? `<div class="card-sub">👤 Operator: ${escapeHtml(s.operator_name)}</div>` : ''}
+          <span class="type-badge ${typeBadgeClass(s.type)}">${s.type}</span>
         </div>
-      `).join('');
+        <div class="card-actions">
+          ${!s.verified ? `<button class="action-btn btn-approve" data-id="${s.id}" data-name="${escapeHtml(s.name)}" data-action="approve">✅ Approve</button>` : ''}
+          <button class="action-btn btn-delete" data-id="${s.id}" data-name="${escapeHtml(s.name)}" data-action="delete">🗑️ Delete</button>
+        </div>
+      </div>
+    `).join('');
+  } catch (e) {
+    console.error('loadStations error:', e);
+  }
+}
 
-                } catch (e) {
-                    document.getElementById('reports-list').innerHTML =
-                        '<div class="empty"><p>Failed to load reports</p></div>';
-                }
-            }
+// ── LOAD REPORTS ──
+async function loadReports() {
+  try {
+    const res = await fetch(`${API}/admin/reports`, { headers: headers() });
+    const data = await res.json();
+    const reports = data.data || [];
 
-// ── GLOBAL CLICK HANDLER ──
-// Handles all action buttons using data attributes
-// Avoids onclick string issues with special characters in names/IDs
-document.addEventListener('click', function(e) {
+    document.getElementById('reports-count').textContent = reports.length;
+
+    const list = document.getElementById('reports-list');
+    if (reports.length === 0) {
+      list.innerHTML = `<div class="empty"><div class="icon">🚩</div><p>No reports submitted yet</p></div>`;
+      return;
+    }
+
+    list.innerHTML = reports.map(r => `
+      <div class="card">
+        <div class="card-info">
+          <div class="card-title">${escapeHtml(r.issue_type)}</div>
+          <div class="card-sub">📍 Station: <strong>${escapeHtml(r.station_name)}</strong> (${r.station_type})</div>
+          <div class="card-sub">👤 Reported by: ${escapeHtml(r.user_name)}</div>
+          <div class="card-sub">🕐 ${new Date(r.created_at).toLocaleString()}</div>
+          ${r.notes ? `<div class="card-sub">💬 "${escapeHtml(r.notes)}"</div>` : ''}
+        </div>
+      </div>
+    `).join('');
+  } catch (e) {
+    console.error('loadReports error:', e);
+  }
+}
+
+// ── LOAD ALL ──
+function loadAll() {
+  loadPending();
+  loadStations();
+  loadReports();
+}
+
+// ── ESCAPE HTML to prevent XSS and broken strings ──
+function escapeHtml(str) {
+  if (!str) return '';
+  return str.replace(/[&<>]/g, function(m) {
+    if (m === '&') return '&amp;';
+    if (m === '<') return '&lt;';
+    if (m === '>') return '&gt;';
+    return m;
+  }).replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, function(c) {
+    return c;
+  });
+}
+
+// ── GLOBAL CLICK HANDLER (DOES THE ACTUAL WORK) ──
+document.addEventListener('click', async function(e) {
   const btn = e.target.closest('[data-action]');
   if (!btn) return;
 
   const id = btn.dataset.id;
-  const name = btn.dataset.name;
+  const name = btn.dataset.name || 'this station';
   const action = btn.dataset.action;
 
   if (action === 'approve') {
-    showConfirm(
-      'Approve Station',
-      `Approve "${name}"? It will appear on the map for all users.`,
-      'btn-approve',
-      '✅ Approve',
-      async () => {
-        try {
-          const res = await fetch(
-            `${API}/admin/stations/${id}/approve`,
-            { method: 'PUT', headers: headers() }
-          );
-          if (!res.ok) throw new Error();
-          showToast(`✅ "${name}" approved!`, 'success');
-          loadAll();
-        } catch {
-          showToast('Failed to approve station', 'error');
-        }
-      }
-    );
+    if (!confirm(`Approve "${name}"? It will appear on the map for all users.`)) return;
+    try {
+      const res = await fetch(`${API}/admin/stations/${id}/approve`, { method: 'PUT', headers: headers() });
+      if (!res.ok) throw new Error();
+      showToast(`✅ "${name}" approved!`, 'success');
+      loadAll();
+    } catch {
+      showToast('Failed to approve station', 'error');
+    }
   }
 
   if (action === 'reject') {
-    showConfirm(
-      'Reject Station',
-      `Reject and remove "${name}"? This cannot be undone.`,
-      'btn-reject',
-      '❌ Reject',
-      async () => {
-        try {
-          const res = await fetch(
-            `${API}/admin/stations/${id}`,
-            { method: 'DELETE', headers: headers() }
-          );
-          if (!res.ok) throw new Error();
-          showToast(`❌ "${name}" rejected`, 'error');
-          loadAll();
-        } catch {
-          showToast('Failed to reject station', 'error');
-        }
-      }
-    );
+    if (!confirm(`Reject and remove "${name}"? This cannot be undone.`)) return;
+    try {
+      const res = await fetch(`${API}/admin/stations/${id}`, { method: 'DELETE', headers: headers() });
+      if (!res.ok) throw new Error();
+      showToast(`❌ "${name}" rejected`, 'error');
+      loadAll();
+    } catch {
+      showToast('Failed to reject station', 'error');
+    }
   }
 
   if (action === 'delete') {
-    showConfirm(
-      'Delete Station',
-      `Permanently delete "${name}"? This cannot be undone.`,
-      'btn-reject',
-      '🗑️ Delete',
-      async () => {
-        try {
-          const res = await fetch(
-            `${API}/admin/stations/${id}`,
-            { method: 'DELETE', headers: headers() }
-          );
-          if (!res.ok) throw new Error();
-          showToast(`🗑️ "${name}" deleted`, 'error');
-          loadAll();
-        } catch {
-          showToast('Failed to delete station', 'error');
-        }
-      }
-    );
+    if (!confirm(`Permanently delete "${name}"? This cannot be undone.`)) return;
+    try {
+      const res = await fetch(`${API}/admin/stations/${id}`, { method: 'DELETE', headers: headers() });
+      if (!res.ok) throw new Error();
+      showToast(`🗑️ "${name}" deleted`, 'error');
+      loadAll();
+    } catch {
+      showToast('Failed to delete station', 'error');
+    }
   }
 });
 
-
-            /*// ── APPROVE STATION ──
-            async function approveStation(id, name) {
-                showConfirm(
-                    'Approve Station',
-                    `Approve "${name}"? It will appear on the map for all users.`,
-                    'btn-approve',
-                    ' Approve',
-                    async () => {
-                        try {
-                            const res = await fetch(
-                                `${API}/admin/stations/${id}/approve`,
-                                { method: 'PUT', headers: headers() }
-                            );
-                            if (!res.ok) throw new Error();
-                            showToast(` "${name}" approved!`, 'success');
-                            loadAll();
-                        } catch {
-                            showToast('Failed to approve station', 'error');
-                        }
-                    }
-                );
-            }
-
-            // ── REJECT STATION ──
-            async function rejectStation(id, name) {
-                showConfirm(
-                    'Reject Station',
-                    `Reject and remove "${name}"? This cannot be undone.`,
-                    'btn-reject',
-                    ' Reject',
-                    async () => {
-                        try {
-                            const res = await fetch(
-                                `${API}/admin/stations/${id}`,
-                                { method: 'DELETE', headers: headers() }
-                            );
-                            if (!res.ok) throw new Error();
-                            showToast(` "${name}" rejected and removed`, 'error');
-                            loadAll();
-                        } catch {
-                            showToast('Failed to reject station', 'error');
-                        }
-                    }
-                );
-            }
-
-            // ── DELETE STATION ──
-            async function deleteStation(id, name) {
-                showConfirm(
-                    'Delete Station',
-                    `Permanently delete "${name}"? This cannot be undone.`,
-                    'btn-reject',
-                    ' Delete',
-                    async () => {
-                        try {
-                            const res = await fetch(
-                                `${API}/admin/stations/${id}`,
-                                { method: 'DELETE', headers: headers() }
-                            );
-                            if (!res.ok) throw new Error();
-                            showToast(` "${name}" deleted`, 'error');
-                            loadAll();
-                        } catch {
-                            showToast('Failed to delete station', 'error');
-                        }
-                    }
-                );
-            }*/
-
-            // ── HELPERS ──
-            function typeBadgeClass(type) {
-                if (type === 'Petrol/Diesel') return 'badge-petrol';
-                if (type === 'LPG') return 'badge-lpg';
-                if (type === 'EV') return 'badge-ev';
-                return '';
-            }
-
-            function showToast(msg, type = '') {
-                const t = document.getElementById('toast');
-                t.textContent = msg;
-                t.className = `show ${type}`;
-                setTimeout(() => t.className = '', 3000);
-            }
-
-            function showConfirm(title, msg, btnClass, btnLabel, action) {
-                document.getElementById('confirm-title').textContent = title;
-                document.getElementById('confirm-message').textContent = msg;
-                const btn = document.getElementById('confirm-ok-btn');
-                btn.className = btnClass === 'btn-approve'
-                    ? 'btn-approve' : '';
-                btn.style.background = btnClass === 'btn-approve'
-                    ? '#2E7D32' : '#DC2626';
-                btn.textContent = btnLabel;
-                pendingAction = action;
-                document.getElementById('confirm-overlay').classList.add('show');
-            }
-
-            function closeConfirm() {
-                document.getElementById('confirm-overlay')
-                    .classList.remove('show');
-                pendingAction = null;
-            }
-
-            async function confirmAction() {
-                closeConfirm();
-                if (pendingAction) await pendingAction();
-            }
+// ── INITIAL LOAD ──
+if (TOKEN) {
+  loadAll();
+}
     </script>
 </body>
 
