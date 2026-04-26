@@ -713,6 +713,52 @@
                     }
 
                     list.innerHTML = stations.map(s => `
+  <div class="card">
+    <div class="card-info">
+      <div class="card-title">${s.name}</div>
+      <div class="card-sub">
+        📍 ${parseFloat(s.lat).toFixed(4)}, ${parseFloat(s.lng).toFixed(4)}
+      </div>
+      <div class="card-sub">
+        💰 ${s.price || 'N/A'} &nbsp;|&nbsp;
+        📞 ${s.phone || 'N/A'}
+      </div>
+      <div class="card-sub">
+        👤 Operator: ${s.operator_name || 'Unknown'}
+        (${s.operator_email || ''})
+      </div>
+      <span class="type-badge ${typeBadgeClass(s.type)}">
+        ${s.type}
+      </span>
+      ${s.connector
+        ? `<span class="type-badge badge-ev" style="margin-left:6px">
+            ${s.connector}
+           </span>`
+        : ''}
+      ${s.power_output
+        ? `<span class="type-badge badge-ev" style="margin-left:6px">
+            ${s.power_output}
+           </span>`
+        : ''}
+    </div>
+    <div class="card-actions">
+      <button class="action-btn btn-approve"
+        data-id="${s.id}"
+        data-name="${s.name}"
+        data-action="approve">
+        ✅ Approve
+      </button>
+      <button class="action-btn btn-reject"
+        data-id="${s.id}"
+        data-name="${s.name}"
+        data-action="reject">
+        ❌ Reject
+      </button>
+    </div>
+  </div>
+`).join('');
+
+                   /* list.innerHTML = stations.map(s => `
         <div class="card">
           <div class="card-info">
             <div class="card-title">${s.name}</div>
@@ -752,7 +798,7 @@
             </button>
           </div>
         </div>
-      `).join('');
+      `).join('');*/
 
                 } catch (e) {
                     document.getElementById('pending-list').innerHTML =
@@ -787,8 +833,47 @@
           </div>`;
                         return;
                     }
-
                     list.innerHTML = stations.map(s => `
+  <div class="card">
+    <div class="card-info">
+      <div class="card-title">${s.name}</div>
+      <div class="card-sub">
+        💰 ${s.price || 'N/A'} &nbsp;|&nbsp;
+        📞 ${s.phone || 'N/A'}
+      </div>
+      <div class="card-sub">
+        Status: <strong>${s.status}</strong> &nbsp;|&nbsp;
+        Verified: <strong>${s.verified ? '✅' : '❌'}</strong>
+      </div>
+      ${s.operator_name
+        ? `<div class="card-sub">
+            👤 Operator: ${s.operator_name}
+           </div>`
+        : ''}
+      <span class="type-badge ${typeBadgeClass(s.type)}">
+        ${s.type}
+      </span>
+    </div>
+    <div class="card-actions">
+      ${!s.verified
+        ? `<button class="action-btn btn-approve"
+            data-id="${s.id}"
+            data-name="${s.name}"
+            data-action="approve">
+            ✅ Approve
+           </button>`
+        : ''}
+      <button class="action-btn btn-delete"
+        data-id="${s.id}"
+        data-name="${s.name}"
+        data-action="delete">
+        🗑️ Delete
+      </button>
+    </div>
+  </div>
+`).join('');
+
+                   /* list.innerHTML = stations.map(s => `
         <div class="card">
           <div class="card-info">
             <div class="card-title">${s.name}</div>
@@ -822,7 +907,7 @@
             </button>
           </div>
         </div>
-      `).join('');
+      `).join('');*/
 
                 } catch (e) {
                     document.getElementById('stations-list').innerHTML =
@@ -890,7 +975,86 @@
                 }
             }
 
-            // ── APPROVE STATION ──
+// ── GLOBAL CLICK HANDLER ──
+// Handles all action buttons using data attributes
+// Avoids onclick string issues with special characters in names/IDs
+document.addEventListener('click', function(e) {
+  const btn = e.target.closest('[data-action]');
+  if (!btn) return;
+
+  const id = btn.dataset.id;
+  const name = btn.dataset.name;
+  const action = btn.dataset.action;
+
+  if (action === 'approve') {
+    showConfirm(
+      'Approve Station',
+      `Approve "${name}"? It will appear on the map for all users.`,
+      'btn-approve',
+      '✅ Approve',
+      async () => {
+        try {
+          const res = await fetch(
+            `${API}/admin/stations/${id}/approve`,
+            { method: 'PUT', headers: headers() }
+          );
+          if (!res.ok) throw new Error();
+          showToast(`✅ "${name}" approved!`, 'success');
+          loadAll();
+        } catch {
+          showToast('Failed to approve station', 'error');
+        }
+      }
+    );
+  }
+
+  if (action === 'reject') {
+    showConfirm(
+      'Reject Station',
+      `Reject and remove "${name}"? This cannot be undone.`,
+      'btn-reject',
+      '❌ Reject',
+      async () => {
+        try {
+          const res = await fetch(
+            `${API}/admin/stations/${id}`,
+            { method: 'DELETE', headers: headers() }
+          );
+          if (!res.ok) throw new Error();
+          showToast(`❌ "${name}" rejected`, 'error');
+          loadAll();
+        } catch {
+          showToast('Failed to reject station', 'error');
+        }
+      }
+    );
+  }
+
+  if (action === 'delete') {
+    showConfirm(
+      'Delete Station',
+      `Permanently delete "${name}"? This cannot be undone.`,
+      'btn-reject',
+      '🗑️ Delete',
+      async () => {
+        try {
+          const res = await fetch(
+            `${API}/admin/stations/${id}`,
+            { method: 'DELETE', headers: headers() }
+          );
+          if (!res.ok) throw new Error();
+          showToast(`🗑️ "${name}" deleted`, 'error');
+          loadAll();
+        } catch {
+          showToast('Failed to delete station', 'error');
+        }
+      }
+    );
+  }
+});
+
+
+            /*// ── APPROVE STATION ──
             async function approveStation(id, name) {
                 showConfirm(
                     'Approve Station',
@@ -957,7 +1121,7 @@
                         }
                     }
                 );
-            }
+            }*/
 
             // ── HELPERS ──
             function typeBadgeClass(type) {
