@@ -441,7 +441,7 @@ const getAllReports = async (req, res) => {
 };
 
 
-// ── GET OPERATOR'S OWN STATION ──
+/*// ── GET OPERATOR'S OWN STATION ──
 const getMyStation = async (req, res) => {
   try {
     const result = await pool.query(
@@ -472,7 +472,7 @@ const getMyStation = async (req, res) => {
       message: 'Failed to fetch station',
     });
   }
-};
+};*/
 
 
 module.exports = {
