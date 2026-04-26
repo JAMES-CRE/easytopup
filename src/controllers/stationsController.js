@@ -451,13 +451,13 @@ const getMyStation = async (req, res) => {
        WHERE s.operator_id = $1
        ORDER BY s.created_at DESC
        LIMIT 1`,
-      [req.user.id]
+      [req.user.id]  // req.user is set by 'protect' middleware
     );
 
     if (result.rows.length === 0) {
       return res.status(404).json({
         success: false,
-        message: 'No station found',
+        message: 'No station found for this operator',
       });
     }
 
@@ -472,10 +472,7 @@ const getMyStation = async (req, res) => {
       message: 'Failed to fetch station',
     });
   }
-
 };
-
-
 
 
 module.exports = {
@@ -489,7 +486,7 @@ module.exports = {
   getPendingStations,      // ← ADD THIS
   getAllStationsAdmin,     // ← ADD THIS
   rejectStation,           // ← ADD THIS
-  getAllReports,     
+  getAllReports,
   getMyStation,             // ← ADD THIS
 };
 
