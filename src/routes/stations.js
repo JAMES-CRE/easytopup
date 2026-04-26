@@ -16,5 +16,7 @@ router.put('/:id/price', protect, operatorOnly, updatePrice);
 router.put('/:id/status', protect, operatorOnly, updateStatus);
 router.put('/:id/power', protect, operatorOnly, updatePowerOutput);
 router.put('/:id/approve', protect, adminOnly, approveStation);
+// GET /api/stations/my-station - Get logged-in operator's station
+router.get('/my-station', protect,operatorOnly, getMyStation);
 
 module.exports = router;
