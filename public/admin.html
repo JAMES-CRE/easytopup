@@ -589,71 +589,71 @@
     </div>
 
     <script>
-       // ── CONFIG ──
-const API = 'https://easytopup-finalyearproject.up.railway.app/api';
-let TOKEN = localStorage.getItem('admin_token') || '';
+        // ── CONFIG ──
+        const API = 'https://easytopup-finalyearproject.up.railway.app/api';
+        let TOKEN = localStorage.getItem('admin_token') || '';
 
-// ── HELPER: Headers ──
-const headers = () => ({
-  'Content-Type': 'application/json',
-  'Authorization': `Bearer ${TOKEN}`,
-});
+        // ── HELPER: Headers ──
+        const headers = () => ({
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${TOKEN}`,
+        });
 
-// ── HELPER: Toast ──
-function showToast(msg, type = '') {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.className = `show ${type}`;
-  setTimeout(() => t.className = '', 3000);
-}
+        // ── HELPER: Toast ──
+        function showToast(msg, type = '') {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.className = `show ${type}`;
+            setTimeout(() => t.className = '', 3000);
+        }
 
-// ── HELPER: Confirm Dialog ──
-function showConfirm(title, msg, btnClass, btnLabel, action) {
-  document.getElementById('confirm-title').textContent = title;
-  document.getElementById('confirm-message').textContent = msg;
-  const btn = document.getElementById('confirm-ok-btn');
-  btn.className = btnClass;
-  btn.textContent = btnLabel;
-  window.pendingAction = action;
-  document.getElementById('confirm-overlay').classList.add('show');
-}
+        // ── HELPER: Confirm Dialog ──
+        function showConfirm(title, msg, btnClass, btnLabel, action) {
+            document.getElementById('confirm-title').textContent = title;
+            document.getElementById('confirm-message').textContent = msg;
+            const btn = document.getElementById('confirm-ok-btn');
+            btn.className = btnClass;
+            btn.textContent = btnLabel;
+            window.pendingAction = action;
+            document.getElementById('confirm-overlay').classList.add('show');
+        }
 
-function closeConfirm() {
-  document.getElementById('confirm-overlay').classList.remove('show');
-  window.pendingAction = null;
-}
+        function closeConfirm() {
+            document.getElementById('confirm-overlay').classList.remove('show');
+            window.pendingAction = null;
+        }
 
-async function confirmAction() {
-  const action = window.pendingAction;
-  closeConfirm();
-  if (action) await action();
-}
+        async function confirmAction() {
+            const action = window.pendingAction;
+            closeConfirm();
+            if (action) await action();
+        }
 
-// ── TYPE BADGE CLASS ──
-function typeBadgeClass(type) {
-  if (type === 'Petrol/Diesel') return 'badge-petrol';
-  if (type === 'LPG') return 'badge-lpg';
-  if (type === 'EV') return 'badge-ev';
-  return '';
-}
+        // ── TYPE BADGE CLASS ──
+        function typeBadgeClass(type) {
+            if (type === 'Petrol/Diesel') return 'badge-petrol';
+            if (type === 'LPG') return 'badge-lpg';
+            if (type === 'EV') return 'badge-ev';
+            return '';
+        }
 
-// ── LOAD PENDING STATIONS ──
-async function loadPending() {
-  try {
-    const res = await fetch(`${API}/admin/stations/pending`, { headers: headers() });
-    const data = await res.json();
-    const stations = data.data || [];
+        // ── LOAD PENDING STATIONS ──
+        async function loadPending() {
+            try {
+                const res = await fetch(`${API}/admin/stations/pending`, { headers: headers() });
+                const data = await res.json();
+                const stations = data.data || [];
 
-    document.getElementById('pending-count').textContent = stations.length;
-    document.getElementById('pending-badge').textContent = stations.length;
+                document.getElementById('pending-count').textContent = stations.length;
+                document.getElementById('pending-badge').textContent = stations.length;
 
-    const list = document.getElementById('pending-list');
-    if (stations.length === 0) {
-      list.innerHTML = `<div class="empty"><div class="icon">✅</div><p>No pending stations — all caught up!</p></div>`;
-      return;
-    }
+                const list = document.getElementById('pending-list');
+                if (stations.length === 0) {
+                    list.innerHTML = `<div class="empty"><div class="icon">✅</div><p>No pending stations — all caught up!</p></div>`;
+                    return;
+                }
 
-    list.innerHTML = stations.map(s => `
+                list.innerHTML = stations.map(s => `
       <div class="card">
         <div class="card-info">
           <div class="card-title">${escapeHtml(s.name)}</div>
@@ -668,30 +668,30 @@ async function loadPending() {
         </div>
       </div>
     `).join('');
-  } catch (e) {
-    console.error('loadPending error:', e);
-  }
-}
+            } catch (e) {
+                console.error('loadPending error:', e);
+            }
+        }
 
-// ── LOAD ALL STATIONS ──
-async function loadStations() {
-  try {
-    const res = await fetch(`${API}/admin/stations`, { headers: headers() });
-    const data = await res.json();
-    const stations = data.data || [];
+        // ── LOAD ALL STATIONS ──
+        async function loadStations() {
+            try {
+                const res = await fetch(`${API}/admin/stations`, { headers: headers() });
+                const data = await res.json();
+                const stations = data.data || [];
 
-    document.getElementById('total-stations').textContent = stations.length;
-    document.getElementById('petrol-count').textContent = stations.filter(s => s.type === 'Petrol/Diesel').length;
-    document.getElementById('lpg-count').textContent = stations.filter(s => s.type === 'LPG').length;
-    document.getElementById('ev-count').textContent = stations.filter(s => s.type === 'EV').length;
+                document.getElementById('total-stations').textContent = stations.length;
+                document.getElementById('petrol-count').textContent = stations.filter(s => s.type === 'Petrol/Diesel').length;
+                document.getElementById('lpg-count').textContent = stations.filter(s => s.type === 'LPG').length;
+                document.getElementById('ev-count').textContent = stations.filter(s => s.type === 'EV').length;
 
-    const list = document.getElementById('stations-list');
-    if (stations.length === 0) {
-      list.innerHTML = `<div class="empty"><div class="icon">📍</div><p>No stations yet</p></div>`;
-      return;
-    }
+                const list = document.getElementById('stations-list');
+                if (stations.length === 0) {
+                    list.innerHTML = `<div class="empty"><div class="icon">📍</div><p>No stations yet</p></div>`;
+                    return;
+                }
 
-    list.innerHTML = stations.map(s => `
+                list.innerHTML = stations.map(s => `
       <div class="card">
         <div class="card-info">
           <div class="card-title">${escapeHtml(s.name)}</div>
@@ -706,27 +706,27 @@ async function loadStations() {
         </div>
       </div>
     `).join('');
-  } catch (e) {
-    console.error('loadStations error:', e);
-  }
-}
+            } catch (e) {
+                console.error('loadStations error:', e);
+            }
+        }
 
-// ── LOAD REPORTS ──
-async function loadReports() {
-  try {
-    const res = await fetch(`${API}/admin/reports`, { headers: headers() });
-    const data = await res.json();
-    const reports = data.data || [];
+        // ── LOAD REPORTS ──
+        async function loadReports() {
+            try {
+                const res = await fetch(`${API}/admin/reports`, { headers: headers() });
+                const data = await res.json();
+                const reports = data.data || [];
 
-    document.getElementById('reports-count').textContent = reports.length;
+                document.getElementById('reports-count').textContent = reports.length;
 
-    const list = document.getElementById('reports-list');
-    if (reports.length === 0) {
-      list.innerHTML = `<div class="empty"><div class="icon">🚩</div><p>No reports submitted yet</p></div>`;
-      return;
-    }
+                const list = document.getElementById('reports-list');
+                if (reports.length === 0) {
+                    list.innerHTML = `<div class="empty"><div class="icon">🚩</div><p>No reports submitted yet</p></div>`;
+                    return;
+                }
 
-    list.innerHTML = reports.map(r => `
+                list.innerHTML = reports.map(r => `
       <div class="card">
         <div class="card-info">
           <div class="card-title">${escapeHtml(r.issue_type)}</div>
@@ -737,81 +737,108 @@ async function loadReports() {
         </div>
       </div>
     `).join('');
-  } catch (e) {
-    console.error('loadReports error:', e);
-  }
-}
+            } catch (e) {
+                console.error('loadReports error:', e);
+            }
+        }
 
-// ── LOAD ALL ──
-function loadAll() {
-  loadPending();
-  loadStations();
-  loadReports();
-}
+        // ── LOAD ALL ──
+        function loadAll() {
+            loadPending();
+            loadStations();
+            loadReports();
+        }
 
-// ── ESCAPE HTML to prevent XSS and broken strings ──
-function escapeHtml(str) {
-  if (!str) return '';
-  return str.replace(/[&<>]/g, function(m) {
-    if (m === '&') return '&amp;';
-    if (m === '<') return '&lt;';
-    if (m === '>') return '&gt;';
-    return m;
-  }).replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, function(c) {
-    return c;
-  });
-}
+        // ── ESCAPE HTML to prevent XSS and broken strings ──
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>]/g, function (m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            }).replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, function (c) {
+                return c;
+            });
+        }
 
-// ── GLOBAL CLICK HANDLER (DOES THE ACTUAL WORK) ──
-document.addEventListener('click', async function(e) {
-  const btn = e.target.closest('[data-action]');
-  if (!btn) return;
+        // ── GLOBAL CLICK HANDLER (DOES THE ACTUAL WORK) ──
+        document.addEventListener('click', async function (e) {
+            const btn = e.target.closest('[data-action]');
+            if (!btn) return;
 
-  const id = btn.dataset.id;
-  const name = btn.dataset.name || 'this station';
-  const action = btn.dataset.action;
+            const id = btn.dataset.id;
+            const name = btn.dataset.name || 'this station';
+            const action = btn.dataset.action;
 
-  if (action === 'approve') {
-    if (!confirm(`Approve "${name}"? It will appear on the map for all users.`)) return;
-    try {
-      const res = await fetch(`${API}/admin/stations/${id}/approve`, { method: 'PUT', headers: headers() });
-      if (!res.ok) throw new Error();
-      showToast(`✅ "${name}" approved!`, 'success');
-      loadAll();
-    } catch {
-      showToast('Failed to approve station', 'error');
-    }
-  }
+            if (action === 'approve') {
+                if (!confirm(`Approve "${name}"? It will appear on the map for all users.`)) return;
+                try {
+                    const res = await fetch(`${API}/admin/stations/${id}/approve`, { method: 'PUT', headers: headers() });
+                    if (!res.ok) throw new Error();
+                    showToast(`✅ "${name}" approved!`, 'success');
+                    loadAll();
+                } catch {
+                    showToast('Failed to approve station', 'error');
+                }
+            }
 
-  if (action === 'reject') {
-    if (!confirm(`Reject and remove "${name}"? This cannot be undone.`)) return;
-    try {
-      const res = await fetch(`${API}/admin/stations/${id}`, { method: 'DELETE', headers: headers() });
-      if (!res.ok) throw new Error();
-      showToast(`❌ "${name}" rejected`, 'error');
-      loadAll();
-    } catch {
-      showToast('Failed to reject station', 'error');
-    }
-  }
+            if (action === 'reject') {
+                if (!confirm(`Reject and remove "${name}"? This cannot be undone.`)) return;
+                try {
+                    const res = await fetch(`${API}/admin/stations/${id}`, { method: 'DELETE', headers: headers() });
+                    if (!res.ok) throw new Error();
+                    showToast(`❌ "${name}" rejected`, 'error');
+                    loadAll();
+                } catch {
+                    showToast('Failed to reject station', 'error');
+                }
+            }
 
-  if (action === 'delete') {
-    if (!confirm(`Permanently delete "${name}"? This cannot be undone.`)) return;
-    try {
-      const res = await fetch(`${API}/admin/stations/${id}`, { method: 'DELETE', headers: headers() });
-      if (!res.ok) throw new Error();
-      showToast(`🗑️ "${name}" deleted`, 'error');
-      loadAll();
-    } catch {
-      showToast('Failed to delete station', 'error');
-    }
-  }
-});
+            if (action === 'delete') {
+                if (!confirm(`Permanently delete "${name}"? This cannot be undone.`)) return;
+                try {
+                    const res = await fetch(`${API}/admin/stations/${id}`, { method: 'DELETE', headers: headers() });
+                    if (!res.ok) throw new Error();
+                    showToast(`🗑️ "${name}" deleted`, 'error');
+                    loadAll();
+                } catch {
+                    showToast('Failed to delete station', 'error');
+                }
+            }
+        });
 
-// ── INITIAL LOAD ──
-if (TOKEN) {
-  loadAll();
-}
+        // ── INITIAL LOAD ──
+        if (TOKEN) {
+            loadAll();
+        }
+
+        window.adminLogin = adminLogin;
+        async function adminLogin() {
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            const errEl = document.getElementById('login-error');
+            errEl.textContent = '';
+
+            try {
+                const res = await fetch(`${API}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password }),
+                });
+                const data = await res.json();
+
+                if (!res.ok) throw new Error(data.message);
+                if (data.data.role !== 'admin') throw new Error('Admin access required');
+
+                localStorage.setItem('admin_token', data.data.token);
+                TOKEN = data.data.token;
+                location.reload();
+            } catch (e) {
+                errEl.textContent = e.message;
+            }
+        }
+
     </script>
 </body>
 
