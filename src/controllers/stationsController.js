@@ -441,38 +441,7 @@ const getAllReports = async (req, res) => {
 };
 
 
-/*// ── GET OPERATOR'S OWN STATION ──
-const getMyStation = async (req, res) => {
-  try {
-    const result = await pool.query(
-      `SELECT s.*, 
-              CASE WHEN s.verified = true THEN false ELSE true END as pending
-       FROM stations s
-       WHERE s.operator_id = $1
-       ORDER BY s.created_at DESC
-       LIMIT 1`,
-      [req.user.id]  // req.user is set by 'protect' middleware
-    );
 
-    if (result.rows.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: 'No station found for this operator',
-      });
-    }
-
-    res.status(200).json({
-      success: true,
-      data: result.rows[0],
-    });
-  } catch (error) {
-    console.error('Get my station error:', error.message);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to fetch station',
-    });
-  }
-};*/
 
 
 module.exports = {
@@ -487,7 +456,7 @@ module.exports = {
   getAllStationsAdmin,     // ← ADD THIS
   rejectStation,           // ← ADD THIS
   getAllReports,
-  getMyStation,             // ← ADD THIS
+           // ← ADD THIS
 };
 
 
