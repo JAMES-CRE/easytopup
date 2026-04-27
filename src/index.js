@@ -61,12 +61,16 @@ const stationsRoutes = require('./routes/stations');
 const authRoutes = require('./routes/auth');
 const reportsRoutes = require('./routes/reports');
 const adminRoutes = require('./routes/admin');
+const uploadRoutes = require('./routes/upload');
+
 
 // ── ROUTES ──
 app.use('/api/stations', stationsRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/reports', reportsRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/upload', uploadRoutes);
+
 
 // ── HEALTH CHECK ──
 app.get('/', (req, res) => {

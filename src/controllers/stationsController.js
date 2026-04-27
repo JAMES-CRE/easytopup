@@ -23,6 +23,7 @@ const getAllStations = async (req, res) => {
       connector: row.connector,
       power_output: row.power_output,
       lpg_type: row.lpg_type,
+      photos: row.photos || [],
     }));
 
     res.status(200).json({
@@ -74,6 +75,7 @@ const getStationById = async (req, res) => {
         connector: row.connector,
         power_output: row.power_output,
         lpg_type: row.lpg_type,
+        photos: row.photos || [],
       },
     });
 
@@ -92,7 +94,7 @@ const addStation = async (req, res) => {
     const {
       id, name, type, lat, lng,
       price, phone, whatsapp,
-      octane, connector, power_output, lpg_type,
+      octane, connector, power_output, lpg_type,photos
     } = req.body;
 
     if (!name || !type || !lat || !lng) {
@@ -115,6 +117,7 @@ const addStation = async (req, res) => {
         price, phone, whatsapp,
         octane, connector, power_output,
         lpg_type ? JSON.stringify(lpg_type) : null,
+        photos||[],
         req.user.id,
       ]
     );
@@ -132,6 +135,8 @@ const addStation = async (req, res) => {
     });
   }
 };
+
+
 
 //UPDATE PRICE (operator)
 const updatePrice = async (req, res) => {
@@ -481,6 +486,7 @@ const getMyStation = async (req, res) => {
         lpg_type: row.lpg_type,
         verified: row.verified,
         pending: row.verified === false,
+        photos: row.photos || [],
         
       },
     });
