@@ -88,13 +88,16 @@ const getStationById = async (req, res) => {
   }
 };
 
+
+
 //  Add station which is performed by operators
 const addStation = async (req, res) => {
   try {
     const {
       id, name, type, lat, lng,
       price, phone, whatsapp,
-      octane, connector, power_output, lpg_type,photos
+      octane, connector, power_output, lpg_type,
+      photos,
     } = req.body;
 
     if (!name || !type || !lat || !lng) {
@@ -104,21 +107,29 @@ const addStation = async (req, res) => {
       });
     }
 
-    // verification, we the admin must approve
+    // ✅ CORRECT: Count the placeholders - there should be 14 total
+    // ($1 to $14) - 14 placeholders = 14 values
     await pool.query(
       `INSERT INTO stations
         (id, name, type, lat, lng, price, phone, whatsapp,
-         octane, connector, power_output, lpg_type,
+         octane, connector, power_output, lpg_type, photos,
          operator_id, verified, status)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,false,'Open')`,
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,false,'Open')`,
       [
-        id || `station_${Date.now()}`,
-        name, type, lat, lng,
-        price, phone, whatsapp,
-        octane, connector, power_output,
-        lpg_type ? JSON.stringify(lpg_type) : null,
-        photos||[],
-        req.user.id,
+        id || `station_${Date.now()}`,  // $1
+        name,                            // $2
+        type,                            // $3
+        lat,                             // $4
+        lng,                             // $5
+        price,                           // $6
+        phone,                           // $7
+        whatsapp,                        // $8
+        octane,                          // $9
+        connector,                       // $10
+        power_output,                    // $11
+        lpg_type ? JSON.stringify(lpg_type) : null,  // $12
+        photos || [],                    // $13
+        req.user.id,                     // $14
       ]
     );
 
@@ -131,7 +142,7 @@ const addStation = async (req, res) => {
     console.error('Add station error:', error.message);
     res.status(500).json({
       success: false,
-      message: 'Station addition failed',
+      message: error.message || 'Station addition failed',
     });
   }
 };
