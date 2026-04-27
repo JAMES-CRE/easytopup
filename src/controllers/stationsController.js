@@ -479,8 +479,9 @@ const getMyStation = async (req, res) => {
         connector: row.connector,
         power_output: row.power_output,
         lpg_type: row.lpg_type,
-        pending: row.verified === false,
         verified: row.verified,
+        pending: row.verified === false,
+        
       },
     });
 
