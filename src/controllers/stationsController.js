@@ -456,7 +456,7 @@ const getAllReports = async (req, res) => {
   }
 };
 
-// ── GET OPERATOR'S OWN STATION ──
+/*// ── GET OPERATOR'S OWN STATION ──
 const getMyStation = async (req, res) => {
   try {
 
@@ -507,6 +507,34 @@ const getMyStation = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to fetch station',
+    });
+  }
+};*/
+
+
+
+// ── GET OPERATOR'S OWN STATIONS ──
+// GET /api/operator/my-station
+const getMyStation = async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT * FROM stations 
+       WHERE operator_id = $1 
+       ORDER BY created_at DESC 
+       LIMIT 1`,
+      [req.user.id]
+    );
+
+    res.status(200).json({
+      success: true,
+      data: result.rows[0] || null,
+    });
+
+  } catch (error) {
+    console.error('Get my station error:', error.message);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch your station',
     });
   }
 };

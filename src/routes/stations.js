@@ -38,8 +38,8 @@ const {
 const { protect, operatorOnly, adminOnly } = require('../middleware/authMiddleware');
 
 router.get('/', getAllStations);
-router.get('/:id', getStationById);
-router.get('/my-station', protect, operatorOnly, getMyStation);  // ← ADD THIS
+router.get('/my-station', protect, operatorOnly, getMyStation); // ADD THIS
+router.get('/:id', getStationById); 
 router.post('/', protect, operatorOnly, addStation);
 router.put('/:id/price', protect, operatorOnly, updatePrice);
 router.put('/:id/status', protect, operatorOnly, updateStatus);
