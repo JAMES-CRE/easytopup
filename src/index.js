@@ -80,6 +80,11 @@ app.get('/', (req, res) => {
   });
 });
 
+// Simple test endpoint
+app.get('/api/test', (req, res) => {
+  res.json({ success: true, message: 'API is working!' });
+});
+
 // ── 404 HANDLER ──
 app.use((req, res) => {
   res.status(404).json({
