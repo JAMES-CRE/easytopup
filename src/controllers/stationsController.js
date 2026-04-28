@@ -149,6 +149,147 @@ const addStation = async (req, res) => {
 
 
 
+// ── UPDATE STATION (operator) ──
+// PUT /api/stations/:id
+const updateStation = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      name,
+      phone,
+      whatsapp,
+      lat,
+      lng,
+      octane,
+      connector,
+      power_output,
+      lpg_type,
+      photos,
+    } = req.body;
+
+    // Check if station exists
+    const station = await pool.query(
+      'SELECT * FROM stations WHERE id = $1',
+      [id]
+    );
+
+    if (station.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Station not found',
+      });
+    }
+
+    // Check authorization (operator owns this station or admin)
+    if (
+      req.user.role !== 'admin' &&
+      station.rows[0].operator_id !== req.user.id
+    ) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to update this station',
+      });
+    }
+
+    // Build dynamic update query based on provided fields
+    const updates = [];
+    const values = [];
+    let paramCount = 1;
+
+    if (name !== undefined) {
+      updates.push(`name = $${paramCount++}`);
+      values.push(name);
+    }
+    if (phone !== undefined) {
+      updates.push(`phone = $${paramCount++}`);
+      values.push(phone);
+    }
+    if (whatsapp !== undefined) {
+      updates.push(`whatsapp = $${paramCount++}`);
+      values.push(whatsapp);
+    }
+    if (lat !== undefined) {
+      updates.push(`lat = $${paramCount++}`);
+      values.push(lat);
+    }
+    if (lng !== undefined) {
+      updates.push(`lng = $${paramCount++}`);
+      values.push(lng);
+    }
+    if (octane !== undefined) {
+      updates.push(`octane = $${paramCount++}`);
+      values.push(octane);
+    }
+    if (connector !== undefined) {
+      updates.push(`connector = $${paramCount++}`);
+      values.push(connector);
+    }
+    if (power_output !== undefined) {
+      updates.push(`power_output = $${paramCount++}`);
+      values.push(power_output);
+    }
+    if (lpg_type !== undefined) {
+      updates.push(`lpg_type = $${paramCount++}`);
+      values.push(JSON.stringify(lpg_type));
+    }
+    if (photos !== undefined) {
+      updates.push(`photos = $${paramCount++}`);
+      values.push(photos);
+    }
+
+    if (updates.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'No fields to update',
+      });
+    }
+
+    // Add id as the last parameter
+    values.push(id);
+    
+    const query = `
+      UPDATE stations 
+      SET ${updates.join(', ')} 
+      WHERE id = $${paramCount}
+      RETURNING *
+    `;
+
+    const result = await pool.query(query, values);
+    const updatedStation = result.rows[0];
+
+    res.status(200).json({
+      success: true,
+      message: 'Station updated successfully',
+      data: {
+        id: updatedStation.id,
+        name: updatedStation.name,
+        type: updatedStation.type,
+        lat: parseFloat(updatedStation.lat),
+        lng: parseFloat(updatedStation.lng),
+        status: updatedStation.status,
+        price: updatedStation.price,
+        phone: updatedStation.phone,
+        whatsapp: updatedStation.whatsapp,
+        octane: updatedStation.octane,
+        connector: updatedStation.connector,
+        power_output: updatedStation.power_output,
+        lpg_type: updatedStation.lpg_type,
+        photos: updatedStation.photos || [],
+        verified: updatedStation.verified,
+      },
+    });
+
+  } catch (error) {
+    console.error('Update station error:', error.message);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update station',
+    });
+  }
+};
+
+
+
 //UPDATE PRICE (operator)
 const updatePrice = async (req, res) => {
   try {
@@ -545,6 +686,7 @@ module.exports = {
   getAllStations,
   getStationById,
   addStation,
+  updateStation,
   updatePrice,
   updateStatus,
   updatePowerOutput,

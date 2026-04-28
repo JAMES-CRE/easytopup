@@ -28,6 +28,7 @@ const {
   getAllStations,
   getStationById,
   addStation,
+  updateStation,
   updatePrice,
   updateStatus,
   updatePowerOutput,
@@ -41,6 +42,7 @@ router.get('/', getAllStations);
 router.get('/my-station', protect, operatorOnly, getMyStation); // ADD THIS
 router.get('/:id', getStationById); 
 router.post('/', protect, operatorOnly, addStation);
+router.put('/:id', protect, operatorOnly, updateStation); 
 router.put('/:id/price', protect, operatorOnly, updatePrice);
 router.put('/:id/status', protect, operatorOnly, updateStatus);
 router.put('/:id/power', protect, operatorOnly, updatePowerOutput);
