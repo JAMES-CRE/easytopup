@@ -795,7 +795,7 @@ async function loadReports() {
             list.innerHTML = `<div class="empty"><p>No reports submitted yet</p></div>`;
             return;
         }
-        list.innerHTML = reports.map(r => `
+        /*list.innerHTML = reports.map(r => `
             <div class="card">
                 <div class="card-info">
                     <div class="card-title">${escapeHtml(r.issue_type)}</div>
@@ -805,7 +805,35 @@ async function loadReports() {
                     ${r.notes ? `<div class="card-sub">"${escapeHtml(r.notes)}"</div>` : ''}
                 </div>
             </div>
-        `).join('');
+        `).join('');*/
+
+        // In loadReports() function, add photo display
+list.innerHTML = reports.map(r => `
+  <div class="card">
+    <div class="card-info">
+      <div class="card-title">${escapeHtml(r.issue_type)}</div>
+      ${r.extra_data?.photo_url ? `
+        <div class="card-sub">
+          <a href="${r.extra_data.photo_url}" target="_blank">
+            <img src="${r.extra_data.photo_url}" 
+                 style="max-width: 200px; max-height: 150px; border-radius: 8px; margin-top: 8px;" />
+          </a>
+        </div>
+      ` : ''}
+      <div class="card-sub">
+         Station: <strong>${escapeHtml(r.station_name)}</strong>
+        (${r.station_type})
+      </div>
+      <div class="card-sub">
+        Reported by: ${escapeHtml(r.user_name)}
+      </div>
+      <div class="card-sub">
+         ${new Date(r.created_at).toLocaleString()}
+      </div>
+      ${r.notes ? `<div class="card-sub">"${escapeHtml(r.notes)}"</div>` : ''}
+    </div>
+  </div>
+`).join('');
     } catch (e) {
         document.getElementById('reports-list').innerHTML = '<div class="empty"><p>Failed to load reports</p></div>';
     }
