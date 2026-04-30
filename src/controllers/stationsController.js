@@ -682,6 +682,40 @@ const getMyStation = async (req, res) => {
 
 
 
+
+// ── GET OPERATOR'S ALL STATIONS ──
+// GET /api/stations/my-stations
+const getMyStations = async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT s.*, 
+              CASE WHEN s.verified = true THEN false ELSE true END as pending
+       FROM stations s
+       WHERE s.operator_id = $1
+       ORDER BY s.created_at DESC`,
+      [req.user.id]
+    );
+
+    res.status(200).json({
+      success: true,
+      count: result.rows.length,
+      data: result.rows,
+    });
+
+  } catch (error) {
+    console.error('Get my stations error:', error.message);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch stations',
+    });
+  }
+};
+
+
+
+
+
+
 module.exports = {
   getAllStations,
   getStationById,
@@ -695,7 +729,8 @@ module.exports = {
   getAllStationsAdmin,     // ← ADD THIS
   rejectStation,           // ← ADD THIS
   getAllReports,
-  getMyStation,              // ← ADD THIS
+  getMyStation,
+  getMyStations,            // ← ADD THIS
 };
 
 

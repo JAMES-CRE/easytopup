@@ -33,13 +33,15 @@ const {
   updateStatus,
   updatePowerOutput,
   approveStation,
-  getMyStation,  // ← ADD THIS
+  getMyStation,
+  getMyStations,  // ← ADD THIS
 } = require('../controllers/stationsController');
 
 const { protect, operatorOnly, adminOnly } = require('../middleware/authMiddleware');
 
 router.get('/', getAllStations);
 router.get('/my-station', protect, operatorOnly, getMyStation); // ADD THIS
+router.get('/my-stations', protect, operatorOnly, getMyStations);
 router.get('/:id', getStationById); 
 router.post('/', protect, operatorOnly, addStation);
 router.put('/:id', protect, operatorOnly, updateStation); 
