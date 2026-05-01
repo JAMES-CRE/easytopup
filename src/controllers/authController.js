@@ -222,4 +222,83 @@ const getProfile = async (req, res) => {
   }
 };
 
-module.exports = { register, login, getProfile }; 
+
+
+// ── UPDATE PROFILE ──
+// PUT /api/auth/profile
+const updateProfile = async (req, res) => {
+  try {
+    const { name, email } = req.body;
+    const userId = req.user.id;
+
+    // Check at least one field provided
+    if (!name && !email) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide name or email to update',
+      });
+    }
+
+    // If email is being changed, check it's not taken
+    if (email) {
+      const existing = await pool.query(
+        'SELECT id FROM users WHERE email = $1 AND id != $2',
+        [email, userId]
+      );
+      if (existing.rows.length > 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'Email already in use by another account',
+        });
+      }
+    }
+
+    // Build dynamic update query - only update fields that were provided
+    const updates = [];
+    const values = [];
+    let paramCount = 1;
+
+    if (name) {
+      updates.push(`name = $${paramCount++}`);
+      values.push(name);
+    }
+    if (email) {
+      updates.push(`email = $${paramCount++}`);
+      values.push(email);
+    }
+
+    if (updates.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'No fields to update',
+      });
+    }
+
+    values.push(userId);
+
+    const result = await pool.query(
+      `UPDATE users SET ${updates.join(', ')}
+       WHERE id = $${paramCount}
+       RETURNING id, name, email, role`,
+      values
+    );
+
+    res.status(200).json({
+      success: true,
+      message: 'Profile updated successfully',
+      data: result.rows[0],
+    });
+
+  } catch (error) {
+    console.error('Update profile error:', error.message);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update profile',
+    });
+  }
+};
+
+
+
+
+module.exports = { register, login, getProfile, updateProfile };
