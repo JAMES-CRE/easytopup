@@ -37,6 +37,36 @@ router.post('/', protect, upload.array('photos', 4), async (req, res) => {
   }
 });
 
+
+
+// POST /api/upload/profile - Upload profile photo
+router.post('/profile', protect, upload.single('photo'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please select a photo',
+      });
+    }
+
+    const photoUrl = req.file.path;
+    
+    res.status(200).json({
+      success: true,
+      data: photoUrl,
+    });
+  } catch (error) {
+    console.error('Profile upload error:', error.message);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to upload profile photo',
+    });
+  }
+});
+
+
+
+
 // DELETE /api/upload - Delete a photo from Cloudinary
 router.delete('/', protect, async (req, res) => {
   try {

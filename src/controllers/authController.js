@@ -100,13 +100,20 @@ const register = async (req, res) => {
     // Only allow 'user' or 'operator' — never allow 'admin' from signup
     const userRole = role === 'operator' ? 'operator' : 'user';
 
-    const result = await pool.query(
+    /*const result = await pool.query(
       `INSERT INTO users (name, email, password, role, business_name)
        VALUES ($1, $2, $3, $4, $5)
        RETURNING id, name, email, role, business_name`,
       [name, email, hashedPassword, userRole, business_name || null]
-    );
+    );*/
 
+    // In register function, add photo_url to INSERT
+const result = await pool.query(
+  `INSERT INTO users (name, email, password, role, business_name, phone, photo_url)
+   VALUES ($1, $2, $3, $4, $5, $6, $7)
+   RETURNING id, name, email, role, business_name, phone, photo_url`,
+  [name, email, hashedPassword, userRole, business_name || null, phone || null, null]
+);
     const user = result.rows[0];
     const token = generateToken(user);
 
@@ -193,7 +200,7 @@ const login = async (req, res) => {
   }
 };
 
-  // GET PROFILE
+ /* // GET PROFILE
 const getProfile = async (req, res) => {
   try {
     const result = await pool.query(
@@ -220,22 +227,49 @@ const getProfile = async (req, res) => {
       message: 'Failed to get profile',
     });
   }
-};
+};*/
 
+const getProfile = async (req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT id, name, email, role, photo_url, created_at FROM users WHERE id = $1',
+      [req.user.id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: result.rows[0],
+    });
+
+  } catch (error) {
+    console.error('Get profile error:', error.message);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get profile',
+    });
+  }
+};
 
 
 // ── UPDATE PROFILE ──
 // PUT /api/auth/profile
 const updateProfile = async (req, res) => {
   try {
-    const { name, email } = req.body;
+    const { name, email, photo_url } = req.body;
     const userId = req.user.id;
 
     // Check at least one field provided
-    if (!name && !email) {
+    if (!name && !email && !photo_url) {
       return res.status(400).json({
         success: false,
-        message: 'Please provide name or email to update',
+        message: 'Please provide at least one field to update',
       });
     }
 
@@ -253,7 +287,7 @@ const updateProfile = async (req, res) => {
       }
     }
 
-    // Build dynamic update query - only update fields that were provided
+    // Build dynamic update query
     const updates = [];
     const values = [];
     let paramCount = 1;
@@ -265,6 +299,10 @@ const updateProfile = async (req, res) => {
     if (email) {
       updates.push(`email = $${paramCount++}`);
       values.push(email);
+    }
+    if (photo_url !== undefined) {
+      updates.push(`photo_url = $${paramCount++}`);
+      values.push(photo_url);
     }
 
     if (updates.length === 0) {
@@ -279,7 +317,7 @@ const updateProfile = async (req, res) => {
     const result = await pool.query(
       `UPDATE users SET ${updates.join(', ')}
        WHERE id = $${paramCount}
-       RETURNING id, name, email, role`,
+       RETURNING id, name, email, photo_url, role`,
       values
     );
 
@@ -297,7 +335,6 @@ const updateProfile = async (req, res) => {
     });
   }
 };
-
 
 
 
