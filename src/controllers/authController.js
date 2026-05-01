@@ -141,7 +141,7 @@ const result = await pool.query(
 
 
      //LOGIN 
-const login = async (req, res) => {
+/*const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
@@ -198,37 +198,73 @@ const login = async (req, res) => {
       message: 'Login failed. Please try again.',
     });
   }
-};
+};*/
 
- /* // GET PROFILE
-const getProfile = async (req, res) => {
+// LOGIN 
+const login = async (req, res) => {
   try {
-    const result = await pool.query(
-      'SELECT id, name, email, role, created_at FROM users WHERE id = $1',
-      [req.user.id]
-    );
+    const { email, password } = req.body;
 
-    if (result.rows.length === 0) {
-      return res.status(404).json({
+    if (!email || !password) {
+      return res.status(400).json({
         success: false,
-        message: 'User not in our system',
+        message: 'Please provide email and password',
       });
     }
 
+    // Find user - include photo_url
+    const result = await pool.query(
+      'SELECT id, name, email, password, role, photo_url FROM users WHERE email = $1',
+      [email]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid email or password',
+      });
+    }
+
+    const user = result.rows[0];
+
+    // Compare password
+    const isMatch = await bcrypt.compare(password, user.password);
+
+    if (!isMatch) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid email or password',
+      });
+    }
+
+    const token = generateToken(user);
+
     res.status(200).json({
       success: true,
-      data: result.rows[0],
+      message: 'Logged in successfully',
+      data: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        photo_url: user.photo_url,  // ← ADD THIS
+        token,
+      },
     });
 
   } catch (error) {
-    console.error('Get profile error:', error.message);
+    console.error('Login error:', error.message);
     res.status(500).json({
       success: false,
-      message: 'Failed to get profile',
+      message: 'Login failed. Please try again.',
     });
   }
-};*/
+};
 
+
+
+
+ // GET PROFILE
 const getProfile = async (req, res) => {
   try {
     const result = await pool.query(
