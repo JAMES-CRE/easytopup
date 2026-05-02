@@ -41,6 +41,83 @@ const pool = require('../config/db');
   }
 };*/
 
+/*const getAllStations = async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT * FROM stations
+       WHERE verified = true
+       ORDER BY name ASC`
+    );
+
+    const stations = result.rows.map(row => {
+
+ let lpgTypeArray = null;
+      if (row.lpg_type) {
+        if (typeof row.lpg_type === 'string') {
+          // Remove curly braces: {Autogas,"Cylinder Refill"} -> Autogas,"Cylinder Refill"
+          const cleaned = row.lpg_type.slice(1, -1);
+          if (cleaned) {
+            // Split by comma and clean quotes
+            lpgTypeArray = cleaned.split(',').map(item => 
+              item.replace(/^"(.*)"$/, '$1').trim()
+            );
+          }
+        } else if (Array.isArray(row.lpg_type)) {
+          lpgTypeArray = row.lpg_type;
+        }
+      }
+
+      // Calculate LPG cylinder prices if applicable
+      let cylinderPrices = null;
+      if (row.type === 'LPG' && row.lpg_price_per_kg) {
+        const pricePerKg = parseFloat(row.lpg_price_per_kg);
+        cylinderPrices = {
+          '3kg': `GH₵ ${(pricePerKg * 3).toFixed(2)}`,
+          '6kg': `GH₵ ${(pricePerKg * 6).toFixed(2)}`,
+          '11kg': `GH₵ ${(pricePerKg * 11).toFixed(2)}`,
+          '14.5kg': `GH₵ ${(pricePerKg * 14.5).toFixed(2)}`,
+          '15kg': `GH₵ ${(pricePerKg * 15).toFixed(2)}`,
+          '50kg': `GH₵ ${(pricePerKg * 50).toFixed(2)}`,
+        };
+      }
+
+      return {
+        id: row.id,
+        name: row.name,
+        type: row.type,
+        lat: parseFloat(row.lat),
+        lng: parseFloat(row.lng),
+        status: row.status,
+        price: row.price,
+        phone: row.phone,
+        whatsapp: row.whatsapp,
+        octane: row.octane,
+        connector: row.connector,
+        power_output: row.power_output,
+        lpg_type: lpgTypeArray,
+        photos: row.photos || [],
+        // LPG specific fields
+        lpg_price_per_kg: row.lpg_price_per_kg,
+        delivery_available: row.delivery_available,
+        cylinder_prices: cylinderPrices,
+      };
+    });
+
+    res.status(200).json({
+      success: true,
+      count: stations.length,
+      data: stations,
+    });
+
+  } catch (error) {
+    console.error('Get stations error:', error.message);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch stations',
+    });
+  }
+};*/
+
 const getAllStations = async (req, res) => {
   try {
     const result = await pool.query(
@@ -50,6 +127,23 @@ const getAllStations = async (req, res) => {
     );
 
     const stations = result.rows.map(row => {
+      // Parse PostgreSQL array to JavaScript array for lpg_type
+      let lpgTypeArray = null;
+      if (row.lpg_type) {
+        if (typeof row.lpg_type === 'string') {
+          // Remove curly braces: {Autogas,"Cylinder Refill"} -> Autogas,"Cylinder Refill"
+          const cleaned = row.lpg_type.slice(1, -1);
+          if (cleaned) {
+            // Split by comma and clean quotes
+            lpgTypeArray = cleaned.split(',').map(item => 
+              item.replace(/^"(.*)"$/, '$1').trim()
+            );
+          }
+        } else if (Array.isArray(row.lpg_type)) {
+          lpgTypeArray = row.lpg_type;
+        }
+      }
+      
       // Calculate LPG cylinder prices if applicable
       let cylinderPrices = null;
       if (row.type === 'LPG' && row.lpg_price_per_kg) {
@@ -77,9 +171,8 @@ const getAllStations = async (req, res) => {
         octane: row.octane,
         connector: row.connector,
         power_output: row.power_output,
-        lpg_type: row.lpg_type,
+        lpg_type: lpgTypeArray,  // ← Use parsed array
         photos: row.photos || [],
-        // LPG specific fields
         lpg_price_per_kg: row.lpg_price_per_kg,
         delivery_available: row.delivery_available,
         cylinder_prices: cylinderPrices,
@@ -153,7 +246,7 @@ const getAllStations = async (req, res) => {
 };*/
 
 
-const getStationById = async (req, res) => {
+/*const getStationById = async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -170,7 +263,7 @@ const getStationById = async (req, res) => {
     }
 
     const row = result.rows[0];
-    
+
     // Calculate LPG cylinder prices if applicable
     let cylinderPrices = null;
     if (row.type === 'LPG' && row.lpg_price_per_kg) {
@@ -184,7 +277,7 @@ const getStationById = async (req, res) => {
         '50kg': `GH₵ ${(pricePerKg * 50).toFixed(2)}`,
       };
     }
-    
+
     res.status(200).json({
       success: true,
       data: {
@@ -216,7 +309,87 @@ const getStationById = async (req, res) => {
       message: 'Failed to fetch station',
     });
   }
+};*/
+
+const getStationById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const result = await pool.query(
+      'SELECT * FROM stations WHERE id = $1',
+      [id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Station not found',
+      });
+    }
+
+    const row = result.rows[0];
+    
+    // Parse PostgreSQL array to JavaScript array for lpg_type
+    let lpgTypeArray = null;
+    if (row.lpg_type) {
+      if (typeof row.lpg_type === 'string') {
+        const cleaned = row.lpg_type.slice(1, -1);
+        if (cleaned) {
+          lpgTypeArray = cleaned.split(',').map(item => 
+            item.replace(/^"(.*)"$/, '$1').trim()
+          );
+        }
+      } else if (Array.isArray(row.lpg_type)) {
+        lpgTypeArray = row.lpg_type;
+      }
+    }
+    
+    // Calculate LPG cylinder prices if applicable
+    let cylinderPrices = null;
+    if (row.type === 'LPG' && row.lpg_price_per_kg) {
+      const pricePerKg = parseFloat(row.lpg_price_per_kg);
+      cylinderPrices = {
+        '3kg': `GH₵ ${(pricePerKg * 3).toFixed(2)}`,
+        '6kg': `GH₵ ${(pricePerKg * 6).toFixed(2)}`,
+        '11kg': `GH₵ ${(pricePerKg * 11).toFixed(2)}`,
+        '14.5kg': `GH₵ ${(pricePerKg * 14.5).toFixed(2)}`,
+        '15kg': `GH₵ ${(pricePerKg * 15).toFixed(2)}`,
+        '50kg': `GH₵ ${(pricePerKg * 50).toFixed(2)}`,
+      };
+    }
+    
+    res.status(200).json({
+      success: true,
+      data: {
+        id: row.id,
+        name: row.name,
+        type: row.type,
+        lat: parseFloat(row.lat),
+        lng: parseFloat(row.lng),
+        status: row.status,
+        price: row.price,
+        phone: row.phone,
+        whatsapp: row.whatsapp,
+        octane: row.octane,
+        connector: row.connector,
+        power_output: row.power_output,
+        lpg_type: lpgTypeArray,  // ← Use parsed array
+        photos: row.photos || [],
+        lpg_price_per_kg: row.lpg_price_per_kg,
+        delivery_available: row.delivery_available,
+        cylinder_prices: cylinderPrices,
+      },
+    });
+
+  } catch (error) {
+    console.error('Get station error:', error.message);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch station',
+    });
+  }
 };
+
 
 
 
@@ -276,8 +449,7 @@ const getStationById = async (req, res) => {
     });
   }
 };*/
-
-const addStation = async (req, res) => {
+/*const addStation = async (req, res) => {
   try {
     const {
       id, name, type, lat, lng,
@@ -325,6 +497,81 @@ const addStation = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Station addition failed',
+    });
+  }
+};*/
+
+const addStation = async (req, res) => {
+  try {
+    const {
+      id, name, type, lat, lng,
+      price, phone, whatsapp,
+      octane, connector, power_output, lpg_type,
+      photos,
+      lpg_price_per_kg,
+      delivery_available,
+    } = req.body;
+
+    console.log('=== ADD STATION DEBUG ===');
+    console.log('Type:', type);
+    console.log('LPG Type (raw):', lpg_type);
+    console.log('LPG Price per kg:', lpg_price_per_kg);
+
+    if (!name || !type || !lat || !lng) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide name, type, lat and lng',
+      });
+    }
+
+    // Convert lpg_type array to PostgreSQL array format if it's an array
+    let pgLpgType = null;
+    if (lpg_type && Array.isArray(lpg_type) && lpg_type.length > 0) {
+      // Convert ['Autogas', 'Cylinder Refill'] to '{Autogas,"Cylinder Refill"}'
+      const formatted = lpg_type.map(item => {
+        // Wrap items with spaces or special characters in quotes
+        if (item.includes(' ') || item.includes('-')) {
+          return `"${item}"`;
+        }
+        return item;
+      }).join(',');
+      pgLpgType = `{${formatted}}`;
+    }
+
+    console.log('Formatted LPG Type:', pgLpgType);
+
+    // Always include all columns - LPG fields will be NULL for non-LPG stations
+    await pool.query(
+      `INSERT INTO stations
+        (id, name, type, lat, lng, price, phone, whatsapp,
+         octane, connector, power_output, lpg_type, photos,
+         lpg_price_per_kg, delivery_available,
+         operator_id, verified, status)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,false,'Open')`,
+      [
+        id || `station_${Date.now()}`,
+        name, type, lat, lng,
+        price, phone, whatsapp,
+        octane, connector, power_output,
+        pgLpgType,  // ← Use the formatted PostgreSQL array
+        photos || [],
+        lpg_price_per_kg || null,
+        delivery_available === true ? true : false,
+        req.user.id,
+      ]
+    );
+
+    res.status(201).json({
+      success: true,
+      message: 'Station submitted for approval',
+    });
+
+  } catch (error) {
+    console.error('Add station error:', error.message);
+    console.error('Stack:', error.stack);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Station addition failed',
     });
   }
 };
@@ -551,10 +798,27 @@ const updateStation = async (req, res) => {
       updates.push(`power_output = $${paramCount++}`);
       values.push(power_output);
     }
-    if (lpg_type !== undefined) {
+    /*if (lpg_type !== undefined) {
       updates.push(`lpg_type = $${paramCount++}`);
       values.push(JSON.stringify(lpg_type));
+    }*/
+
+    if (lpg_type !== undefined) {
+      // Convert to PostgreSQL array format
+      let pgLpgType = null;
+      if (Array.isArray(lpg_type) && lpg_type.length > 0) {
+        const formatted = lpg_type.map(item => {
+          if (item.includes(' ') || item.includes('-')) {
+            return `"${item}"`;
+          }
+          return item;
+        }).join(',');
+        pgLpgType = `{${formatted}}`;
+      }
+      updates.push(`lpg_type = $${paramCount++}`);
+      values.push(pgLpgType);
     }
+
     if (photos !== undefined) {
       updates.push(`photos = $${paramCount++}`);
       values.push(photos);
@@ -576,7 +840,7 @@ const updateStation = async (req, res) => {
     }
 
     values.push(id);
-    
+
     const query = `
       UPDATE stations 
       SET ${updates.join(', ')} 
@@ -852,7 +1116,7 @@ const updatePowerOutput = async (req, res) => {
 };*/
 
 
-const getPendingStations = async (req, res) => {
+/*const getPendingStations = async (req, res) => {
   try {
     const result = await pool.query(
       `SELECT s.*, u.name as operator_name, u.email as operator_email
@@ -876,7 +1140,7 @@ const getPendingStations = async (req, res) => {
           '50kg': `GH₵ ${(pricePerKg * 50).toFixed(2)}`,
         };
       }
-      
+
       return {
         id: row.id,
         name: row.name,
@@ -916,13 +1180,93 @@ const getPendingStations = async (req, res) => {
       message: 'Failed to fetch pending stations',
     });
   }
+};*/
+
+const getPendingStations = async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT s.*, u.name as operator_name, u.email as operator_email
+       FROM stations s
+       LEFT JOIN users u ON s.operator_id = u.id
+       WHERE s.verified = false
+       ORDER BY s.created_at DESC`
+    );
+
+    const stations = result.rows.map(row => {
+      // Parse PostgreSQL array to JavaScript array for lpg_type
+      let lpgTypeArray = null;
+      if (row.lpg_type) {
+        if (typeof row.lpg_type === 'string') {
+          const cleaned = row.lpg_type.slice(1, -1);
+          if (cleaned) {
+            lpgTypeArray = cleaned.split(',').map(item => 
+              item.replace(/^"(.*)"$/, '$1').trim()
+            );
+          }
+        } else if (Array.isArray(row.lpg_type)) {
+          lpgTypeArray = row.lpg_type;
+        }
+      }
+      
+      // Calculate LPG cylinder prices if applicable
+      let cylinderPrices = null;
+      if (row.type === 'LPG' && row.lpg_price_per_kg) {
+        const pricePerKg = parseFloat(row.lpg_price_per_kg);
+        cylinderPrices = {
+          '3kg': `GH₵ ${(pricePerKg * 3).toFixed(2)}`,
+          '6kg': `GH₵ ${(pricePerKg * 6).toFixed(2)}`,
+          '11kg': `GH₵ ${(pricePerKg * 11).toFixed(2)}`,
+          '14.5kg': `GH₵ ${(pricePerKg * 14.5).toFixed(2)}`,
+          '15kg': `GH₵ ${(pricePerKg * 15).toFixed(2)}`,
+          '50kg': `GH₵ ${(pricePerKg * 50).toFixed(2)}`,
+        };
+      }
+      
+      return {
+        id: row.id,
+        name: row.name,
+        type: row.type,
+        lat: parseFloat(row.lat),
+        lng: parseFloat(row.lng),
+        status: row.status,
+        price: row.price,
+        phone: row.phone,
+        whatsapp: row.whatsapp,
+        octane: row.octane,
+        connector: row.connector,
+        power_output: row.power_output,
+        lpg_type: lpgTypeArray,  // ← Use parsed array
+        photos: row.photos || [],
+        operator_name: row.operator_name,
+        operator_email: row.operator_email,
+        verified: row.verified,
+        created_at: row.created_at,
+        lpg_price_per_kg: row.lpg_price_per_kg,
+        delivery_available: row.delivery_available,
+        cylinder_prices: cylinderPrices,
+      };
+    });
+
+    res.status(200).json({
+      success: true,
+      count: stations.length,
+      data: stations,
+    });
+
+  } catch (error) {
+    console.error('Get pending stations error:', error.message);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch pending stations',
+    });
+  }
 };
 
 
 
 // ── GET ALL STATIONS (admin) ──
 // GET /api/admin/stations
-const getAllStationsAdmin = async (req, res) => {
+/*const getAllStationsAdmin = async (req, res) => {
   try {
     const result = await pool.query(
       `SELECT s.*, u.name as operator_name
@@ -935,6 +1279,84 @@ const getAllStationsAdmin = async (req, res) => {
       success: true,
       count: result.rows.length,
       data: result.rows,
+    });
+
+  } catch (error) {
+    console.error('Get all stations error:', error.message);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch stations',
+    });
+  }
+};*/
+
+const getAllStationsAdmin = async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT s.*, u.name as operator_name
+       FROM stations s
+       LEFT JOIN users u ON s.operator_id = u.id
+       ORDER BY s.created_at DESC`
+    );
+
+    const stations = result.rows.map(row => {
+      // Parse PostgreSQL array to JavaScript array for lpg_type
+      let lpgTypeArray = null;
+      if (row.lpg_type) {
+        if (typeof row.lpg_type === 'string') {
+          const cleaned = row.lpg_type.slice(1, -1);
+          if (cleaned) {
+            lpgTypeArray = cleaned.split(',').map(item => 
+              item.replace(/^"(.*)"$/, '$1').trim()
+            );
+          }
+        } else if (Array.isArray(row.lpg_type)) {
+          lpgTypeArray = row.lpg_type;
+        }
+      }
+      
+      // Calculate LPG cylinder prices if applicable
+      let cylinderPrices = null;
+      if (row.type === 'LPG' && row.lpg_price_per_kg) {
+        const pricePerKg = parseFloat(row.lpg_price_per_kg);
+        cylinderPrices = {
+          '3kg': `GH₵ ${(pricePerKg * 3).toFixed(2)}`,
+          '6kg': `GH₵ ${(pricePerKg * 6).toFixed(2)}`,
+          '11kg': `GH₵ ${(pricePerKg * 11).toFixed(2)}`,
+          '14.5kg': `GH₵ ${(pricePerKg * 14.5).toFixed(2)}`,
+          '15kg': `GH₵ ${(pricePerKg * 15).toFixed(2)}`,
+          '50kg': `GH₵ ${(pricePerKg * 50).toFixed(2)}`,
+        };
+      }
+      
+      return {
+        id: row.id,
+        name: row.name,
+        type: row.type,
+        lat: parseFloat(row.lat),
+        lng: parseFloat(row.lng),
+        status: row.status,
+        price: row.price,
+        phone: row.phone,
+        whatsapp: row.whatsapp,
+        octane: row.octane,
+        connector: row.connector,
+        power_output: row.power_output,
+        lpg_type: lpgTypeArray,  // ← Use parsed array
+        photos: row.photos || [],
+        operator_name: row.operator_name,
+        verified: row.verified,
+        created_at: row.created_at,
+        lpg_price_per_kg: row.lpg_price_per_kg,
+        delivery_available: row.delivery_available,
+        cylinder_prices: cylinderPrices,
+      };
+    });
+
+    res.status(200).json({
+      success: true,
+      count: stations.length,
+      data: stations,
     });
 
   } catch (error) {
@@ -1057,7 +1479,7 @@ const getMyStation = async (req, res) => {
 
 // ── GET OPERATOR'S OWN STATIONS ──
 // GET /api/operator/my-station
-const getMyStation = async (req, res) => {
+/*const getMyStation = async (req, res) => {
   try {
     const result = await pool.query(
       `SELECT * FROM stations 
@@ -1079,6 +1501,93 @@ const getMyStation = async (req, res) => {
       message: 'Failed to fetch your station',
     });
   }
+};*/
+
+
+
+// ── GET OPERATOR'S OWN STATION (single, for backward compatibility) ──
+const getMyStation = async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT s.*, 
+              CASE WHEN s.verified = true THEN false ELSE true END as pending
+       FROM stations s
+       WHERE s.operator_id = $1
+       ORDER BY s.created_at DESC
+       LIMIT 1`,
+      [req.user.id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'No station found for this operator',
+      });
+    }
+
+    const row = result.rows[0];
+    
+    // Parse PostgreSQL array to JavaScript array for lpg_type
+    let lpgTypeArray = null;
+    if (row.lpg_type) {
+      if (typeof row.lpg_type === 'string') {
+        const cleaned = row.lpg_type.slice(1, -1);
+        if (cleaned) {
+          lpgTypeArray = cleaned.split(',').map(item => 
+            item.replace(/^"(.*)"$/, '$1').trim()
+          );
+        }
+      } else if (Array.isArray(row.lpg_type)) {
+        lpgTypeArray = row.lpg_type;
+      }
+    }
+    
+    // Calculate LPG cylinder prices if applicable
+    let cylinderPrices = null;
+    if (row.type === 'LPG' && row.lpg_price_per_kg) {
+      const pricePerKg = parseFloat(row.lpg_price_per_kg);
+      cylinderPrices = {
+        '3kg': `GH₵ ${(pricePerKg * 3).toFixed(2)}`,
+        '6kg': `GH₵ ${(pricePerKg * 6).toFixed(2)}`,
+        '11kg': `GH₵ ${(pricePerKg * 11).toFixed(2)}`,
+        '14.5kg': `GH₵ ${(pricePerKg * 14.5).toFixed(2)}`,
+        '15kg': `GH₵ ${(pricePerKg * 15).toFixed(2)}`,
+        '50kg': `GH₵ ${(pricePerKg * 50).toFixed(2)}`,
+      };
+    }
+    
+    res.status(200).json({
+      success: true,
+      data: {
+        id: row.id,
+        name: row.name,
+        type: row.type,
+        lat: parseFloat(row.lat),
+        lng: parseFloat(row.lng),
+        status: row.status,
+        price: row.price,
+        phone: row.phone,
+        whatsapp: row.whatsapp,
+        octane: row.octane,
+        connector: row.connector,
+        power_output: row.power_output,
+        lpg_type: lpgTypeArray,  // ← Use parsed array
+        photos: row.photos || [],
+        verified: row.verified,
+        pending: row.verified === false,
+        lpg_price_per_kg: row.lpg_price_per_kg,
+        delivery_available: row.delivery_available,
+        cylinder_prices: cylinderPrices,
+      },
+    });
+
+  } catch (error) {
+    console.error('Get my station error:', error.message);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch station',
+    });
+  }
 };
 
 
@@ -1086,7 +1595,7 @@ const getMyStation = async (req, res) => {
 
 // ── GET OPERATOR'S ALL STATIONS ──
 // GET /api/stations/my-stations
-const getMyStations = async (req, res) => {
+/*const getMyStations = async (req, res) => {
   try {
     const result = await pool.query(
       `SELECT s.*, 
@@ -1101,6 +1610,85 @@ const getMyStations = async (req, res) => {
       success: true,
       count: result.rows.length,
       data: result.rows,
+    });
+
+  } catch (error) {
+    console.error('Get my stations error:', error.message);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch stations',
+    });
+  }
+};*/
+
+const getMyStations = async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT s.*, 
+              CASE WHEN s.verified = true THEN false ELSE true END as pending
+       FROM stations s
+       WHERE s.operator_id = $1
+       ORDER BY s.created_at DESC`,
+      [req.user.id]
+    );
+
+    const stations = result.rows.map(row => {
+      // Parse PostgreSQL array to JavaScript array for lpg_type
+      let lpgTypeArray = null;
+      if (row.lpg_type) {
+        if (typeof row.lpg_type === 'string') {
+          const cleaned = row.lpg_type.slice(1, -1);
+          if (cleaned) {
+            lpgTypeArray = cleaned.split(',').map(item => 
+              item.replace(/^"(.*)"$/, '$1').trim()
+            );
+          }
+        } else if (Array.isArray(row.lpg_type)) {
+          lpgTypeArray = row.lpg_type;
+        }
+      }
+      
+      // Calculate LPG cylinder prices if applicable
+      let cylinderPrices = null;
+      if (row.type === 'LPG' && row.lpg_price_per_kg) {
+        const pricePerKg = parseFloat(row.lpg_price_per_kg);
+        cylinderPrices = {
+          '3kg': `GH₵ ${(pricePerKg * 3).toFixed(2)}`,
+          '6kg': `GH₵ ${(pricePerKg * 6).toFixed(2)}`,
+          '11kg': `GH₵ ${(pricePerKg * 11).toFixed(2)}`,
+          '14.5kg': `GH₵ ${(pricePerKg * 14.5).toFixed(2)}`,
+          '15kg': `GH₵ ${(pricePerKg * 15).toFixed(2)}`,
+          '50kg': `GH₵ ${(pricePerKg * 50).toFixed(2)}`,
+        };
+      }
+      
+      return {
+        id: row.id,
+        name: row.name,
+        type: row.type,
+        lat: parseFloat(row.lat),
+        lng: parseFloat(row.lng),
+        status: row.status,
+        price: row.price,
+        phone: row.phone,
+        whatsapp: row.whatsapp,
+        octane: row.octane,
+        connector: row.connector,
+        power_output: row.power_output,
+        lpg_type: lpgTypeArray,  // ← Use parsed array
+        photos: row.photos || [],
+        verified: row.verified,
+        pending: row.verified === false,
+        lpg_price_per_kg: row.lpg_price_per_kg,
+        delivery_available: row.delivery_available,
+        cylinder_prices: cylinderPrices,
+      };
+    });
+
+    res.status(200).json({
+      success: true,
+      count: stations.length,
+      data: stations,
     });
 
   } catch (error) {
