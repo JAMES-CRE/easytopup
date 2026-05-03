@@ -135,7 +135,7 @@ const getAllStations = async (req, res) => {
           const cleaned = row.lpg_type.slice(1, -1);
           if (cleaned) {
             // Split by comma and clean quotes
-            lpgTypeArray = cleaned.split(',').map(item => 
+            lpgTypeArray = cleaned.split(',').map(item =>
               item.replace(/^"(.*)"$/, '$1').trim()
             );
           }
@@ -143,9 +143,9 @@ const getAllStations = async (req, res) => {
           lpgTypeArray = row.lpg_type;
         }
       }
-      
+
       // Calculate LPG cylinder prices if applicable
-      let cylinderPrices = null;
+      /*let cylinderPrices = null;
       if (row.type === 'LPG' && row.lpg_price_per_kg) {
         const pricePerKg = parseFloat(row.lpg_price_per_kg);
         cylinderPrices = {
@@ -156,8 +156,26 @@ const getAllStations = async (req, res) => {
           '15kg': `GH₵ ${(pricePerKg * 15).toFixed(2)}`,
           '50kg': `GH₵ ${(pricePerKg * 50).toFixed(2)}`,
         };
+      }*/
+      // In getAllStations, inside the stations.map loop
+      let cylinderPrices = null;
+      if (row.type === 'LPG' && row.price) {
+        // Extract numeric value from price string like "GH₵ 12.70/kg"
+        const priceMatch = row.price.match(/[\d.]+/);
+        if (priceMatch) {
+          const pricePerKg = parseFloat(priceMatch[0]);
+          cylinderPrices = {
+            '3kg': `GH₵ ${(pricePerKg * 3).toFixed(2)}`,
+            '6kg': `GH₵ ${(pricePerKg * 6).toFixed(2)}`,
+            '11kg': `GH₵ ${(pricePerKg * 11).toFixed(2)}`,
+            '14.5kg': `GH₵ ${(pricePerKg * 14.5).toFixed(2)}`,
+            '15kg': `GH₵ ${(pricePerKg * 15).toFixed(2)}`,
+            '50kg': `GH₵ ${(pricePerKg * 50).toFixed(2)}`,
+          };
+        }
       }
-      
+
+
       return {
         id: row.id,
         name: row.name,
@@ -328,14 +346,14 @@ const getStationById = async (req, res) => {
     }
 
     const row = result.rows[0];
-    
+
     // Parse PostgreSQL array to JavaScript array for lpg_type
     let lpgTypeArray = null;
     if (row.lpg_type) {
       if (typeof row.lpg_type === 'string') {
         const cleaned = row.lpg_type.slice(1, -1);
         if (cleaned) {
-          lpgTypeArray = cleaned.split(',').map(item => 
+          lpgTypeArray = cleaned.split(',').map(item =>
             item.replace(/^"(.*)"$/, '$1').trim()
           );
         }
@@ -343,7 +361,7 @@ const getStationById = async (req, res) => {
         lpgTypeArray = row.lpg_type;
       }
     }
-    
+
     // Calculate LPG cylinder prices if applicable
     let cylinderPrices = null;
     if (row.type === 'LPG' && row.lpg_price_per_kg) {
@@ -357,7 +375,7 @@ const getStationById = async (req, res) => {
         '50kg': `GH₵ ${(pricePerKg * 50).toFixed(2)}`,
       };
     }
-    
+
     res.status(200).json({
       success: true,
       data: {
@@ -1199,7 +1217,7 @@ const getPendingStations = async (req, res) => {
         if (typeof row.lpg_type === 'string') {
           const cleaned = row.lpg_type.slice(1, -1);
           if (cleaned) {
-            lpgTypeArray = cleaned.split(',').map(item => 
+            lpgTypeArray = cleaned.split(',').map(item =>
               item.replace(/^"(.*)"$/, '$1').trim()
             );
           }
@@ -1207,7 +1225,7 @@ const getPendingStations = async (req, res) => {
           lpgTypeArray = row.lpg_type;
         }
       }
-      
+
       // Calculate LPG cylinder prices if applicable
       let cylinderPrices = null;
       if (row.type === 'LPG' && row.lpg_price_per_kg) {
@@ -1221,7 +1239,7 @@ const getPendingStations = async (req, res) => {
           '50kg': `GH₵ ${(pricePerKg * 50).toFixed(2)}`,
         };
       }
-      
+
       return {
         id: row.id,
         name: row.name,
@@ -1306,7 +1324,7 @@ const getAllStationsAdmin = async (req, res) => {
         if (typeof row.lpg_type === 'string') {
           const cleaned = row.lpg_type.slice(1, -1);
           if (cleaned) {
-            lpgTypeArray = cleaned.split(',').map(item => 
+            lpgTypeArray = cleaned.split(',').map(item =>
               item.replace(/^"(.*)"$/, '$1').trim()
             );
           }
@@ -1314,7 +1332,7 @@ const getAllStationsAdmin = async (req, res) => {
           lpgTypeArray = row.lpg_type;
         }
       }
-      
+
       // Calculate LPG cylinder prices if applicable
       let cylinderPrices = null;
       if (row.type === 'LPG' && row.lpg_price_per_kg) {
@@ -1328,7 +1346,7 @@ const getAllStationsAdmin = async (req, res) => {
           '50kg': `GH₵ ${(pricePerKg * 50).toFixed(2)}`,
         };
       }
-      
+
       return {
         id: row.id,
         name: row.name,
@@ -1526,14 +1544,14 @@ const getMyStation = async (req, res) => {
     }
 
     const row = result.rows[0];
-    
+
     // Parse PostgreSQL array to JavaScript array for lpg_type
     let lpgTypeArray = null;
     if (row.lpg_type) {
       if (typeof row.lpg_type === 'string') {
         const cleaned = row.lpg_type.slice(1, -1);
         if (cleaned) {
-          lpgTypeArray = cleaned.split(',').map(item => 
+          lpgTypeArray = cleaned.split(',').map(item =>
             item.replace(/^"(.*)"$/, '$1').trim()
           );
         }
@@ -1541,7 +1559,7 @@ const getMyStation = async (req, res) => {
         lpgTypeArray = row.lpg_type;
       }
     }
-    
+
     // Calculate LPG cylinder prices if applicable
     let cylinderPrices = null;
     if (row.type === 'LPG' && row.lpg_price_per_kg) {
@@ -1555,7 +1573,7 @@ const getMyStation = async (req, res) => {
         '50kg': `GH₵ ${(pricePerKg * 50).toFixed(2)}`,
       };
     }
-    
+
     res.status(200).json({
       success: true,
       data: {
@@ -1639,7 +1657,7 @@ const getMyStations = async (req, res) => {
         if (typeof row.lpg_type === 'string') {
           const cleaned = row.lpg_type.slice(1, -1);
           if (cleaned) {
-            lpgTypeArray = cleaned.split(',').map(item => 
+            lpgTypeArray = cleaned.split(',').map(item =>
               item.replace(/^"(.*)"$/, '$1').trim()
             );
           }
@@ -1647,7 +1665,7 @@ const getMyStations = async (req, res) => {
           lpgTypeArray = row.lpg_type;
         }
       }
-      
+
       // Calculate LPG cylinder prices if applicable
       let cylinderPrices = null;
       if (row.type === 'LPG' && row.lpg_price_per_kg) {
@@ -1661,7 +1679,7 @@ const getMyStations = async (req, res) => {
           '50kg': `GH₵ ${(pricePerKg * 50).toFixed(2)}`,
         };
       }
-      
+
       return {
         id: row.id,
         name: row.name,
