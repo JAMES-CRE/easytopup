@@ -194,6 +194,7 @@ const getAllStations = async (req, res) => {
         lpg_price_per_kg: row.lpg_price_per_kg,
         delivery_available: row.delivery_available,
         cylinder_prices: cylinderPrices,
+        has_backup_generator: row.has_backup_generator === true,
       };
     });
 
@@ -395,6 +396,7 @@ const getStationById = async (req, res) => {
         photos: row.photos || [],
         lpg_price_per_kg: row.lpg_price_per_kg,
         delivery_available: row.delivery_available,
+        has_backup_generator: row.has_backup_generator === true,
         cylinder_prices: cylinderPrices,
       },
     });
@@ -528,6 +530,7 @@ const addStation = async (req, res) => {
       photos,
       lpg_price_per_kg,
       delivery_available,
+      has_backup_generator,
     } = req.body;
 
     console.log('=== ADD STATION DEBUG ===');
@@ -575,6 +578,7 @@ const addStation = async (req, res) => {
         photos || [],
         lpg_price_per_kg || null,
         delivery_available === true ? true : false,
+        has_backup_generator === true ? true : false,
         req.user.id,
       ]
     );
@@ -753,6 +757,7 @@ const updateStation = async (req, res) => {
       photos,
       lpg_price_per_kg,      // ← NEW
       delivery_available,     // ← NEW
+      has_backup_generator,
     } = req.body;
 
     // Check if station exists
@@ -849,6 +854,13 @@ const updateStation = async (req, res) => {
       updates.push(`delivery_available = $${paramCount++}`);
       values.push(delivery_available);
     }
+
+
+    if (has_backup_generator !== undefined) {
+      updates.push(`has_backup_generator = $${paramCount++}`);
+      values.push(has_backup_generator);
+    }
+
 
     if (updates.length === 0) {
       return res.status(400).json({
@@ -1261,6 +1273,7 @@ const getPendingStations = async (req, res) => {
         created_at: row.created_at,
         lpg_price_per_kg: row.lpg_price_per_kg,
         delivery_available: row.delivery_available,
+        has_backup_generator: row.has_backup_generator === true,
         cylinder_prices: cylinderPrices,
       };
     });
@@ -1368,6 +1381,7 @@ const getAllStationsAdmin = async (req, res) => {
         lpg_price_per_kg: row.lpg_price_per_kg,
         delivery_available: row.delivery_available,
         cylinder_prices: cylinderPrices,
+        has_backup_generator: row.has_backup_generator === true,
       };
     });
 
@@ -1595,6 +1609,7 @@ const getMyStation = async (req, res) => {
         pending: row.verified === false,
         lpg_price_per_kg: row.lpg_price_per_kg,
         delivery_available: row.delivery_available,
+        has_backup_generator: row.has_backup_generator === true,
         cylinder_prices: cylinderPrices,
       },
     });
@@ -1699,6 +1714,7 @@ const getMyStations = async (req, res) => {
         pending: row.verified === false,
         lpg_price_per_kg: row.lpg_price_per_kg,
         delivery_available: row.delivery_available,
+        has_backup_generator: row.has_backup_generator === true,
         cylinder_prices: cylinderPrices,
       };
     });
